@@ -1,0 +1,1490 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CONCI – Herramientas Especiales</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--jd-green:#367C2B;--jd-green-dark:#265C1E;--jd-green-light:#4A9E3C;--jd-yellow:#FFDE00;--jd-yellow-dark:#E5C700;--jd-dark:#1A1A1A;--jd-mid:#3A3A3A;--jd-muted:#A0A098}
+body{font-family:'Arial Black',Arial,sans-serif;background:#1A1A1A;color:#F5F5F0;margin:0;height:100vh;overflow:hidden}
+.app{display:flex;height:100vh}
+.sidebar{width:235px;min-width:235px;background:#1A1A1A;border-right:2px solid var(--jd-yellow);display:flex;flex-direction:column;overflow-y:auto}
+.jd-strip{height:4px;background:var(--jd-yellow);flex-shrink:0}
+.logo-block{padding:16px;border-bottom:2px solid var(--jd-yellow);flex-shrink:0}
+.logo-conci{font-size:26px;font-weight:900;color:#fff;letter-spacing:3px}
+.logo-jd{display:inline-block;background:var(--jd-green);color:var(--jd-yellow);font-size:9px;font-weight:900;padding:2px 7px;border-radius:3px;letter-spacing:1px;margin-top:4px}
+.logo-sub{font-size:10px;color:var(--jd-muted);margin-top:3px;font-weight:400;letter-spacing:0.5px}
+.nav{flex:1;padding:8px}
+.nav-section{font-size:9px;color:var(--jd-yellow);padding:12px 8px 4px;letter-spacing:2px;font-weight:900}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:4px;cursor:pointer;font-size:12px;color:var(--jd-muted);font-weight:700;transition:all 0.15s;margin-bottom:2px;border:none;background:none;width:100%;text-align:left}
+.nav-item:hover{background:var(--jd-mid);color:#fff}
+.nav-item.active{background:var(--jd-green);color:var(--jd-yellow)}
+.main{flex:1;overflow:auto;display:flex;flex-direction:column;background:#1e1e1e}
+.topbar{background:#222;border-bottom:2px solid var(--jd-green);padding:12px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10;flex-shrink:0}
+.topbar-title{font-size:15px;font-weight:900;color:#fff;letter-spacing:1px;display:flex;align-items:center;gap:10px}
+.topbar-title::before{content:'';display:inline-block;width:4px;height:18px;background:var(--jd-yellow);border-radius:2px}
+.content{flex:1;padding:20px}
+.btn{padding:7px 14px;border-radius:4px;font-size:12px;cursor:pointer;border:1.5px solid #555;background:#2A2A2A;color:#F5F5F0;display:inline-flex;align-items:center;gap:6px;transition:all 0.15s;font-weight:700}
+.btn:hover{border-color:var(--jd-yellow);color:var(--jd-yellow)}
+.btn:disabled{opacity:0.4;cursor:not-allowed}
+.btn-primary{background:var(--jd-green);color:var(--jd-yellow);border-color:var(--jd-green)}
+.btn-primary:hover{background:var(--jd-green-dark)}
+.btn-danger{background:#7a1f1f;color:#ffb3b3;border-color:#a32d2d}
+.btn-warning{background:#633806;color:#FFDE00;border-color:#BA7517}
+.btn-yellow{background:var(--jd-yellow);color:#1A1A1A;border-color:var(--jd-yellow);font-weight:900}
+.btn-yellow:hover{background:var(--jd-yellow-dark)}
+.btn-sm{padding:4px 9px;font-size:11px}
+.cards-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:20px}
+.metric-card{background:#222;border:1.5px solid var(--jd-green);border-radius:4px;padding:14px;text-align:center}
+.metric-card.yellow{border-color:var(--jd-yellow)}
+.metric-card.red{border-color:#a32d2d}
+.metric-label{font-size:10px;color:var(--jd-muted);margin-bottom:6px;letter-spacing:1px;font-weight:700}
+.metric-value{font-size:26px;font-weight:900;color:#fff}
+.metric-value.green{color:var(--jd-green-light)}
+.metric-value.red{color:#f09595}
+.metric-value.yellow{color:var(--jd-yellow)}
+.metric-value.blue{color:#85B7EB}
+.card{background:#222;border:1.5px solid #333;border-radius:4px;padding:16px;margin-bottom:16px}
+.card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid #333}
+.card-title{font-size:13px;font-weight:900;color:#fff;letter-spacing:0.5px}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{text-align:left;padding:8px;color:var(--jd-yellow);font-weight:900;font-size:10px;border-bottom:1.5px solid var(--jd-green);letter-spacing:1px;white-space:nowrap}
+td{padding:8px;border-bottom:1px solid #2e2e2e;vertical-align:middle;color:#D0D0C8}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#2a2a2a}
+.badge{display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:3px;font-size:10px;font-weight:900;white-space:nowrap}
+.badge-ok{background:rgba(54,124,43,0.25);color:#7dc867;border:1px solid rgba(54,124,43,0.5)}
+.badge-out{background:rgba(163,45,45,0.25);color:#f09595;border:1px solid rgba(163,45,45,0.5)}
+.badge-pending{background:rgba(255,222,0,0.15);color:#FFDE00;border:1px solid rgba(255,222,0,0.4)}
+.badge-approved{background:rgba(54,124,43,0.2);color:#7dc867;border:1px solid rgba(54,124,43,0.4)}
+.badge-active{background:rgba(55,138,221,0.2);color:#85B7EB;border:1px solid rgba(55,138,221,0.4)}
+.badge-returned{background:#2a2a2a;color:var(--jd-muted);border:1px solid #444}
+.badge-cancelled{background:#2a2a2a;color:var(--jd-muted);border:1px solid #444}
+.badge-prestada{background:rgba(255,222,0,0.15);color:#FFDE00;border:1px solid rgba(255,222,0,0.5)}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.75);display:flex;align-items:center;justify-content:center;z-index:100;padding:20px}
+.modal{background:#222;border:2px solid var(--jd-green);border-radius:4px;width:100%;max-width:560px;max-height:90vh;overflow-y:auto}
+.modal-header{padding:14px 18px;border-bottom:1.5px solid var(--jd-green);display:flex;align-items:center;justify-content:space-between;background:#1A1A1A;position:sticky;top:0;z-index:1}
+.modal-header-title{font-size:13px;font-weight:900;color:var(--jd-yellow);letter-spacing:1px}
+.modal-body{padding:18px}
+.modal-footer{padding:12px 18px;border-top:1px solid #333;display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+.form-group{margin-bottom:13px}
+.form-label{font-size:10px;color:var(--jd-yellow);margin-bottom:5px;display:block;font-weight:900;letter-spacing:1px}
+input,select,textarea{width:100%;padding:8px 10px;border:1.5px solid #444;border-radius:3px;font-size:12px;background:#2a2a2a;color:#F5F5F0;font-family:Arial,sans-serif}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--jd-green)}
+textarea{resize:vertical;min-height:60px}
+select option{background:#2a2a2a}
+.search-row{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.search-bar{display:flex;flex:1;min-width:200px;align-items:center;gap:8px;background:#222;border:1.5px solid #444;border-radius:4px;padding:7px 12px}
+.search-bar input{border:none;background:none;padding:0;color:#F5F5F0}
+.search-bar input:focus{box-shadow:none;border:none}
+.filters{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.filter-btn{padding:4px 11px;border-radius:3px;font-size:11px;cursor:pointer;border:1.5px solid #444;background:#2a2a2a;color:var(--jd-muted);font-weight:700;transition:all 0.15s}
+.filter-btn.active{background:var(--jd-green);color:var(--jd-yellow);border-color:var(--jd-green)}
+.alert{padding:10px 14px;border-radius:4px;font-size:12px;margin-bottom:12px;display:flex;gap:8px;align-items:flex-start}
+.alert-warning{background:rgba(255,222,0,0.1);color:#FFDE00;border:1px solid rgba(255,222,0,0.4)}
+.alert-info{background:rgba(54,124,43,0.1);color:#7dc867;border:1px solid rgba(54,124,43,0.4)}
+.alert-danger{background:rgba(163,45,45,0.2);color:#f09595;border:1px solid rgba(163,45,45,0.5)}
+.alert-blue{background:rgba(55,138,221,0.1);color:#85B7EB;border:1px solid rgba(55,138,221,0.4)}
+.section-divider{font-size:10px;color:var(--jd-yellow);letter-spacing:2px;padding:14px 0 7px;border-top:1px solid #333;margin-top:6px;font-weight:900}
+.no-data{text-align:center;padding:40px 20px;color:var(--jd-muted);font-size:12px}
+.pager{display:flex;align-items:center;gap:8px;padding:12px 0 4px;font-size:12px;color:var(--jd-muted)}
+.timeline{position:relative;padding-left:20px}
+.timeline::before{content:'';position:absolute;left:6px;top:0;bottom:0;width:2px;background:var(--jd-green)}
+.tl-item{position:relative;margin-bottom:14px}
+.tl-dot{position:absolute;left:-17px;top:4px;width:10px;height:10px;border-radius:50%;background:var(--jd-green);border:2px solid #1A1A1A}
+.tl-dot.warn{background:var(--jd-yellow)}
+.tl-dot.danger{background:#E24B4A}
+.tl-dot.blue{background:#378ADD}
+.tl-time{font-size:10px;color:var(--jd-muted)}
+.tl-text{font-size:12px;color:#D0D0C8}
+.tl-sub{font-size:11px;color:var(--jd-muted)}
+.user-block{padding:12px;border-top:2px solid var(--jd-yellow);background:#1A1A1A;flex-shrink:0}
+.user-label{font-size:9px;color:var(--jd-muted);margin-bottom:5px;letter-spacing:1px;font-weight:900}
+.conflict-banner{background:rgba(255,222,0,0.08);border:1.5px solid var(--jd-yellow);border-radius:4px;padding:12px 14px;margin-bottom:16px}
+.loan-banner{background:rgba(55,138,221,0.08);border:1.5px solid #378ADD;border-radius:4px;padding:10px 14px;margin-bottom:8px;font-size:12px}
+.loan-banner-title{color:#85B7EB;font-weight:900;font-size:11px;margin-bottom:3px}
+.spinner{display:inline-block;width:16px;height:16px;border:2px solid #444;border-top-color:var(--jd-yellow);border-radius:50%;animation:spin 0.7s linear infinite;vertical-align:middle;margin-right:6px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-full{display:flex;align-items:center;justify-content:center;height:200px;font-size:13px;color:var(--jd-muted)}
+.online-dot{width:8px;height:8px;border-radius:50%;background:#7dc867;display:inline-block;margin-right:4px}
+.info-row{display:flex;gap:6px;align-items:center;font-size:12px;color:#D0D0C8;padding:5px 0;border-bottom:1px solid #2e2e2e}
+.info-label{color:var(--jd-muted);font-size:10px;font-weight:900;letter-spacing:0.5px;min-width:110px}
+</style>
+</head>
+<body>
+<div class="app" style="display:none">
+<div class="sidebar">
+  <div class="jd-strip"></div>
+  <div class="logo-block">
+    <div class="logo-conci">CONCI</div>
+    <div class="logo-jd">CONCESIONARIO OFICIAL JOHN DEERE</div>
+    <div class="logo-sub">Herramientas Especiales · Reservas</div>
+  </div>
+  <nav class="nav">
+    <div class="nav-section">PRINCIPAL</div>
+    <button class="nav-item active" onclick="showPage('dashboard')" id="nav-dashboard">📊 Panel General</button>
+    <button class="nav-item" onclick="showPage('tools')" id="nav-tools">🔧 Catálogo <span id="tool-count-badge" style="margin-left:auto;background:var(--jd-green);color:var(--jd-yellow);font-size:9px;padding:1px 6px;border-radius:99px;font-weight:900">...</span></button>
+    <button class="nav-item" onclick="showPage('loans')" id="nav-loans">🔄 Préstamos <span id="loan-badge" style="margin-left:auto;background:#378ADD;color:#fff;font-size:9px;padding:1px 6px;border-radius:99px;display:none;font-weight:900">0</span></button>
+    <button class="nav-item" onclick="showPage('reservations')" id="nav-reservations">📅 Reservas</button>
+    <button class="nav-item" onclick="showPage('conflicts')" id="nav-conflicts">⚠️ Conflictos <span id="conflict-badge" style="margin-left:auto;background:#E24B4A;color:#fff;font-size:9px;padding:1px 6px;border-radius:99px;display:none;font-weight:900">0</span></button>
+    <button class="nav-item" onclick="showPage('urgent')" id="nav-urgent">🚨 Pedidos urgentes <span id="urgent-badge" style="margin-left:auto;background:#E24B4A;color:#fff;font-size:9px;padding:1px 6px;border-radius:99px;display:none;font-weight:900">0</span></button>
+    <div class="nav-section">GESTIÓN</div>
+    <button class="nav-item" onclick="showPage('consolidado')" id="nav-consolidado">📋 Consolidado general</button>
+    <button class="nav-item" onclick="showPage('kpi')" id="nav-kpi">📈 KPIs</button>
+    <button class="nav-item" onclick="showPage('branches')" id="nav-branches">🏢 Sucursales</button>
+    <button class="nav-item" onclick="showPage('history')" id="nav-history">📋 Historial</button>
+    <button class="nav-item" onclick="exportHistory()">⬇️ Exportar CSV</button>
+    <button class="nav-item" onclick="showPage('admin')" id="nav-admin">⚙️ Configuración</button>
+  </nav>
+  <div class="user-block">
+    <div class="user-label">USUARIO ACTIVO</div>
+    <input id="user-name" placeholder="Tu nombre..." style="margin-bottom:6px;font-size:11px;padding:5px 8px"/>
+    <div class="user-label" style="margin-top:6px">SUCURSAL</div>
+    <select id="user-branch" style="font-size:11px;padding:5px 8px" onchange="savePref()">
+      <option value="S1">Casa Central – Córdoba</option>
+      <option value="S2">Sucursal 2</option>
+      <option value="S3">Sucursal 3</option>
+      <option value="S4">Sucursal 4</option>
+      <option value="S5">Sucursal 5</option>
+    </select>
+    <div style="font-size:10px;color:var(--jd-muted);margin-top:6px"><span class="online-dot"></span>Conectado · Tiempo real</div>
+    <button onclick="doLogout()" style="width:100%;margin-top:8px;padding:5px;background:#2a2a2a;color:var(--jd-muted);border:1px solid #444;border-radius:3px;font-size:10px;font-weight:700;cursor:pointer;font-family:Arial,sans-serif">Cerrar sesión</button>
+  </div>
+</div>
+
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-title" id="page-title">Panel General</div>
+    <div id="topbar-actions"></div>
+  </div>
+  <div class="content" id="main-content">
+    <div class="loading-full"><span class="spinner"></span>Conectando...</div>
+  </div>
+</div>
+</div>
+
+<div id="modal-overlay" class="modal-overlay" style="display:none" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-header">
+      <span id="modal-title" class="modal-header-title"></span>
+      <button class="btn btn-sm" onclick="closeModal()" style="padding:4px 8px;border:none;background:none;color:var(--jd-muted)">✕</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+    <div class="modal-footer" id="modal-footer"></div>
+  </div>
+</div>
+
+<script>
+const SUPA_URL='https://snssxbtjcnzbsuagbjgp.supabase.co';
+const SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNuc3N4YnRqY256YnN1YWdiamdwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg4MDEyMDcsImV4cCI6MjA5NDM3NzIwN30.DsWqJ2vIdC17j5-FTirhDvjuZ5NLGQKKx24M-aJL53k';
+const {createClient}=supabase;
+const db=createClient(SUPA_URL,SUPA_KEY);
+
+let BRANCHES={S1:'Casa Central – Córdoba',S2:'Sucursal 2',S3:'Sucursal 3',S4:'Sucursal 4',S5:'Sucursal 5'};
+let tools=[],reservations=[],loans=[],history=[],urgentRequests=[];
+let currentPage='dashboard',currentFilter='all',toolPage=0;
+const PAGE_SIZE=50;
+
+// ── PREFS ─────────────────────────────────────────────────────────
+function loadPrefs(){
+  document.getElementById('user-name').value=localStorage.getItem('conci_name')||'';
+  document.getElementById('user-branch').value=localStorage.getItem('conci_branch')||'S1';
+}
+function savePref(){
+  localStorage.setItem('conci_name',document.getElementById('user-name').value);
+  localStorage.setItem('conci_branch',document.getElementById('user-branch').value);
+}
+document.getElementById('user-name').addEventListener('change',savePref);
+function curUser(){return document.getElementById('user-name').value.trim()||'Sin nombre';}
+function curBranch(){return document.getElementById('user-branch').value;}
+function branchName(k){return BRANCHES[k]||k||'-';}
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
+
+// ── LOAD ──────────────────────────────────────────────────────────
+async function loadAll(){
+  const [t,r,l,h,bc,ur]=await Promise.all([
+    db.from('tools').select('*').order('code'),
+    db.from('reservations').select('*').order('date_from'),
+    db.from('loans').select('*').order('created_at',{ascending:false}),
+    db.from('history').select('*').order('created_at',{ascending:false}).limit(300),
+    db.from('branches_config').select('*'),
+    db.from('urgent_requests').select('*').order('created_at',{ascending:false})
+  ]);
+  tools=t.data||[];
+  reservations=r.data||[];
+  loans=l.data||[];
+  history=h.data||[];
+  urgentRequests=ur.data||[];
+  if(bc.data)bc.data.forEach(row=>{BRANCHES[row.key]=row.value;});
+  refreshBranchSelect();
+  updateBadges();
+}
+
+// ── REALTIME ──────────────────────────────────────────────────────
+function setupRealtime(){
+  db.channel('conci-rt')
+    .on('postgres_changes',{event:'*',schema:'public',table:'tools'},async()=>{await loadAll();render();})
+    .on('postgres_changes',{event:'*',schema:'public',table:'reservations'},async()=>{await loadAll();render();})
+    .on('postgres_changes',{event:'*',schema:'public',table:'loans'},async()=>{await loadAll();render();})
+    .on('postgres_changes',{event:'*',schema:'public',table:'urgent_requests'},async()=>{await loadAll();render();})
+    .on('postgres_changes',{event:'*',schema:'public',table:'urgent_requests'},async()=>{await loadAll();render();})
+    .on('postgres_changes',{event:'*',schema:'public',table:'history'},async()=>{await loadAll();if(currentPage==='history')render();})
+    .subscribe();
+}
+
+// ── HELPERS ───────────────────────────────────────────────────────
+function fmtD(n){
+  const d=new Date();
+  d.setDate(d.getDate()+n);
+  const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0');
+  return y+'-'+m+'-'+day;
+}
+function fmtDate(s){if(!s)return '-';const d=new Date(s+'T12:00:00');return d.toLocaleDateString('es-AR',{day:'2-digit',month:'2-digit',year:'numeric'});}
+function fmtDT(s){if(!s)return '-';const d=new Date(s);return d.toLocaleDateString('es-AR',{day:'2-digit',month:'2-digit',year:'numeric'})+' '+d.toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'});}
+function getTool(id){return tools.find(t=>t.id===id);}
+function getActiveLoan(toolId){return loans.find(l=>l.tool_id===toolId&&l.status==='active');}
+
+function getConflicts(){
+  const c=[],active=reservations.filter(r=>r.status==='approved'||r.status==='pending');
+  for(let i=0;i<active.length;i++)for(let j=i+1;j<active.length;j++){
+    const a=active[i],b=active[j];
+    if(a.tool_id===b.tool_id&&a.branch!==b.branch&&a.date_from<=b.date_to&&b.date_from<=a.date_to)c.push({a,b});
+  }
+  return c;
+}
+
+function updateBadges(){
+  const c=getConflicts().length,cel=document.getElementById('conflict-badge');
+  if(cel){cel.style.display=c>0?'inline':'none';cel.textContent=c;}
+  const al=loans.filter(l=>l.status==='active').length,lel=document.getElementById('loan-badge');
+  if(lel){lel.style.display=al>0?'inline':'none';lel.textContent=al;}
+  const urgPending=(urgentRequests||[]).filter(x=>x.status==='pending').length,uel=document.getElementById('urgent-badge');
+  if(uel){uel.style.display=urgPending>0?'inline':'none';uel.textContent=urgPending;}
+  const tb=document.getElementById('tool-count-badge');
+  if(tb)tb.textContent=tools.length;
+}
+
+function refreshBranchSelect(){
+  const sel=document.getElementById('user-branch'),cur=sel.value;
+  sel.innerHTML=Object.keys(BRANCHES).map(k=>`<option value="${k}" ${k===cur?'selected':''}>${BRANCHES[k]}</option>`).join('');
+}
+
+function sBadge(s){
+  return {
+    approved:`<span class="badge badge-approved">✓ Aprobada</span>`,
+    pending:`<span class="badge badge-pending">⏳ Pendiente</span>`,
+    cancelled:`<span class="badge badge-cancelled">Cancelada</span>`,
+    returned:`<span class="badge badge-returned">Devuelta</span>`,
+    active:`<span class="badge badge-active">🔄 En préstamo</span>`,
+    ok:`<span class="badge badge-ok">Operativa</span>`,
+    out:`<span class="badge badge-out">Fuera de servicio</span>`
+  }[s]||`<span class="badge">${s}</span>`;
+}
+
+function toolStatusBadge(t){
+  if(t.status==='out')return sBadge('out');
+  const loan=getActiveLoan(t.id);
+  if(loan)return `<span class="badge badge-prestada">🔄 En ${branchName(loan.to_branch).split('–')[0].trim()}</span>`;
+  return sBadge('ok');
+}
+
+// ── NAVIGATION ────────────────────────────────────────────────────
+function showPage(page){
+  if(page==='admin'){
+    const entered=prompt('Contraseña de administrador:');
+    if(entered===null)return;
+    if(entered!=='Aylentognarelli'){alert('Contraseña incorrecta.');return;}
+  }
+  currentPage=page;toolPage=0;
+  document.querySelectorAll('.nav-item').forEach(e=>e.classList.remove('active'));
+  const n=document.getElementById('nav-'+page);if(n)n.classList.add('active');
+  render();
+}
+
+function render(){
+  updateBadges();
+  ({dashboard:renderDashboard,tools:renderTools,loans:renderLoans,reservations:renderReservations,conflicts:renderConflicts,urgent:renderUrgent,consolidado:renderConsolidado,kpi:renderKPI,branches:renderBranches,history:renderHistory,admin:renderAdmin}[currentPage]||renderDashboard)();
+}
+
+// ── DASHBOARD ─────────────────────────────────────────────────────
+function renderDashboard(){
+  document.getElementById('page-title').textContent='Panel General';
+  document.getElementById('topbar-actions').innerHTML='';
+  const total=tools.length,ok=tools.filter(t=>t.status==='ok'&&!getActiveLoan(t.id)).length,out=tools.filter(t=>t.status==='out').length,prestadas=loans.filter(l=>l.status==='active').length,pend=reservations.filter(r=>r.status==='pending').length;
+  const conflicts=getConflicts();
+  let h=`<div class="cards-grid">
+    <div class="metric-card"><div class="metric-label">TOTAL</div><div class="metric-value">${total}</div></div>
+    <div class="metric-card"><div class="metric-label">DISPONIBLES</div><div class="metric-value green">${ok}</div></div>
+    <div class="metric-card"><div class="metric-label">EN PRÉSTAMO</div><div class="metric-value blue">${prestadas}</div></div>
+    <div class="metric-card red"><div class="metric-label">FUERA SERVICIO</div><div class="metric-value red">${out}</div></div>
+    <div class="metric-card yellow"><div class="metric-label">PENDIENTES</div><div class="metric-value yellow">${pend}</div></div>
+  </div>`;
+  if(conflicts.length>0)h+=`<div class="conflict-banner"><div style="color:var(--jd-yellow);font-weight:900;font-size:12px;margin-bottom:3px">⚠ ${conflicts.length} CONFLICTO${conflicts.length>1?'S':''} DETECTADO${conflicts.length>1?'S':''}</div><div style="font-size:11px;color:#D0D0C8">Herramientas solicitadas en fechas coincidentes. <span style="cursor:pointer;color:var(--jd-yellow);text-decoration:underline" onclick="showPage('conflicts')">Ver →</span></div></div>`;
+
+  // Prestamos activos
+  const activeLoans=loans.filter(l=>l.status==='active');
+  if(activeLoans.length>0){
+    h+=`<div class="card"><div class="card-header"><span class="card-title">🔄 Préstamos activos entre sucursales</span><button class="btn btn-sm" onclick="showPage('loans')">Ver todos →</button></div>`;
+    activeLoans.slice(0,4).forEach(l=>{
+      h+=`<div class="loan-banner"><div class="loan-banner-title">📦 ${l.tool_name} <span style="font-family:monospace;font-size:10px">(${l.tool_code})</span></div>
+      <div style="color:#D0D0C8;font-size:11px">De: <strong>${branchName(l.from_branch)}</strong> → A: <strong>${branchName(l.to_branch)}</strong></div>
+      <div style="color:var(--jd-muted);font-size:10px;margin-top:2px">Salió: ${fmtDate(l.date_from)} · Vence: ${fmtDate(l.date_to)} · Responsable: ${l.user_name}</div></div>`;
+    });
+    h+=`</div>`;
+  }
+
+  h+=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">`;
+  h+=`<div class="card"><div class="card-header"><span class="card-title">📅 Próximas reservas</span><button class="btn btn-sm" onclick="showPage('reservations')">Ver todas →</button></div>`;
+  const up=[...reservations].filter(r=>r.status!=='cancelled').sort((a,b)=>a.date_from.localeCompare(b.date_from)).slice(0,5);
+  if(!up.length)h+=`<div class="no-data">Sin reservas próximas</div>`;
+  else{h+=`<table><thead><tr><th>Herramienta</th><th>Sucursal</th><th>Fecha</th><th>Estado</th></tr></thead><tbody>`;up.forEach(r=>{h+=`<tr><td style="max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.tool_name}</td><td style="font-size:11px">${branchName(r.branch).split('–')[0].trim()}</td><td style="font-size:11px">${fmtDate(r.date_from)}</td><td>${sBadge(r.status)}</td></tr>`;});h+=`</tbody></table>`;}
+  h+=`</div>`;
+  h+=`<div class="card"><div class="card-header"><span class="card-title">📋 Actividad reciente</span><button class="btn btn-sm" onclick="showPage('history')">Ver historial →</button></div>`;
+  if(!history.length)h+=`<div class="no-data">Sin actividad</div>`;
+  else{h+=`<div class="timeline">`;history.slice(0,5).forEach(r=>{h+=`<div class="tl-item"><div class="tl-dot ${r.type==='loan'?'blue':r.type==='return'?'':r.type==='reserve'?'warn':r.to_val==='out'?'danger':''}"></div><div class="tl-time">${fmtDT(r.created_at)}</div><div class="tl-text">${hText(r)}</div><div class="tl-sub">${r.user_name||''}${r.note?' · '+r.note:''}</div></div>`;});h+=`</div>`;}
+  h+=`</div></div>`;
+  document.getElementById('main-content').innerHTML=h;
+}
+
+function hText(h){
+  if(h.type==='loan')return `🔄 <strong>${h.tool_name}</strong> prestada de ${branchName(h.from_val)} a ${branchName(h.to_val)}`;
+  if(h.type==='return')return `✅ <strong>${h.tool_name}</strong> devuelta a ${branchName(h.to_val)}`;
+  if(h.type==='transfer')return `📦 <strong>${h.tool_name}</strong> transferida ${branchName(h.from_val)}→${branchName(h.to_val)}`;
+  if(h.type==='status')return `<strong>${h.tool_name}</strong> → ${h.to_val==='out'?'<span style="color:#f09595">Fuera de servicio</span>':'<span style="color:#7dc867">Operativa</span>'}`;
+  if(h.type==='reserve')return `📅 Reserva <strong>${h.tool_name}</strong> – ${branchName(h.branch)}`;
+  return h.note||'Actividad';
+}
+
+// ── TOOLS ─────────────────────────────────────────────────────────
+function renderTools(){
+  document.getElementById('page-title').textContent='Catálogo de herramientas';
+  document.getElementById('topbar-actions').innerHTML=`<button class="btn btn-yellow" onclick="openAddTool()">+ Nueva herramienta</button>`;
+  let h=`<div class="search-row"><div class="search-bar">🔍<input type="text" placeholder="Buscar código, nombre, ubicación..." id="tool-search" oninput="toolPage=0;filterTools()"/></div><select id="ubic-filter" style="width:160px;font-size:11px" onchange="toolPage=0;filterTools()"><option value="">Todas las ubicaciones</option></select></div>`;
+  h+=`<div class="filters"><button class="filter-btn active" onclick="setFilter(this,'all')">Todas</button><button class="filter-btn" onclick="setFilter(this,'ok')">Disponibles</button><button class="filter-btn" onclick="setFilter(this,'loan')">En préstamo</button><button class="filter-btn" onclick="setFilter(this,'out')">Fuera de servicio</button></div>`;
+  h+=`<div id="tools-list"></div>`;
+  document.getElementById('main-content').innerHTML=h;
+  const locs=[...new Set(tools.map(t=>t.ubicacion).filter(Boolean))].sort();
+  const sel=document.getElementById('ubic-filter');
+  locs.forEach(l=>{const o=document.createElement('option');o.value=l;o.textContent=l;sel.appendChild(o);});
+  filterTools();
+}
+
+function setFilter(el,f){currentFilter=f;document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));el.classList.add('active');toolPage=0;filterTools();}
+
+function filterTools(){
+  const q=(document.getElementById('tool-search')||{value:''}).value.toLowerCase();
+  const uf=(document.getElementById('ubic-filter')||{value:''}).value;
+  const filtered=tools.filter(t=>{
+    const loan=getActiveLoan(t.id);
+    const mQ=!q||t.name.toLowerCase().includes(q)||t.code.toLowerCase().includes(q)||(t.ubicacion||'').toLowerCase().includes(q)||(t.description||'').toLowerCase().includes(q);
+    const mF=currentFilter==='all'||(currentFilter==='ok'&&t.status==='ok'&&!loan)||(currentFilter==='out'&&t.status==='out')||(currentFilter==='loan'&&!!loan);
+    return mQ&&mF&&(!uf||t.ubicacion===uf);
+  });
+  const start=toolPage*PAGE_SIZE,end=start+PAGE_SIZE,page=filtered.slice(start,end);
+  let h='';
+  if(!filtered.length)h=`<div class="card"><div class="no-data">No se encontraron herramientas</div></div>`;
+  else{
+    h+=`<div class="card"><div style="overflow-x:auto"><table><thead><tr><th style="width:95px">Código</th><th>Nombre</th><th style="width:60px">Ubic.</th><th style="width:110px">Sucursal dueña</th><th style="width:130px">Ubicación actual</th><th style="width:100px">Estado</th><th style="width:90px">Acciones</th></tr></thead><tbody>`;
+    page.forEach(t=>{
+      const loan=getActiveLoan(t.id);
+      const ubicActual=loan?`<span style="color:#85B7EB;font-size:11px">🔄 ${branchName(loan.to_branch)}</span>`:`<span style="font-size:11px;color:#D0D0C8">${branchName(t.current_branch).split('–')[0].trim()}</span>`;
+      h+=`<tr>
+        <td style="font-family:monospace;font-size:11px;color:var(--jd-yellow)">${t.code}${t.is_custom?` <span style="background:rgba(255,222,0,0.15);color:var(--jd-yellow);font-size:9px;padding:1px 4px;border-radius:2px">TALLER</span>`:''}</td>
+        <td style="font-size:12px;color:#fff;font-weight:700;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${t.name}</td>
+        <td style="font-size:11px;color:var(--jd-muted)">${t.ubicacion||'-'}</td>
+        <td style="font-size:11px">${branchName(t.home_branch).split('–')[0].trim()}</td>
+        <td>${ubicActual}</td>
+        <td>${toolStatusBadge(t)}</td>
+        <td style="white-space:nowrap">
+          <button class="btn btn-sm" onclick="openToolDetail('${t.id}')" title="Ver">👁</button>
+          <button class="btn btn-sm btn-primary" onclick="openReserveTool('${t.id}')" title="Reservar" ${t.status==='out'?'disabled':''}>📅</button>
+        </td>
+      </tr>`;
+    });
+    h+=`</tbody></table></div><div class="pager">Mostrando ${start+1}–${Math.min(end,filtered.length)} de ${filtered.length}`;
+    if(toolPage>0)h+=` <button class="btn btn-sm" onclick="toolPage--;filterTools()">← Ant</button>`;
+    if(end<filtered.length)h+=` <button class="btn btn-sm" onclick="toolPage++;filterTools()">Sig →</button>`;
+    h+=`</div></div>`;
+  }
+  const el=document.getElementById('tools-list');if(el)el.innerHTML=h;
+}
+
+// ── LOANS PAGE ────────────────────────────────────────────────────
+function renderLoans(){
+  document.getElementById('page-title').textContent='Préstamos entre sucursales';
+  document.getElementById('topbar-actions').innerHTML='';
+  const active=loans.filter(l=>l.status==='active');
+  const returned=loans.filter(l=>l.status==='returned');
+  let h='';
+  if(!active.length&&!returned.length){h=`<div class="card"><div class="no-data">Sin préstamos registrados</div></div>`;document.getElementById('main-content').innerHTML=h;return;}
+
+  if(active.length){
+    h+=`<div class="section-divider" style="border-top:none;padding-top:0">🔄 PRÉSTAMOS ACTIVOS (${active.length})</div>`;
+    h+=`<div class="card"><div style="overflow-x:auto"><table><thead><tr><th>Herramienta</th><th>Código</th><th>Sucursal dueña</th><th>Prestada a</th><th>Salida</th><th>Vence</th><th>Responsable</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>`;
+    active.forEach(l=>{
+      const overdue=l.date_to<new Date().toISOString().split('T')[0];
+      h+=`<tr style="${overdue?'background:rgba(163,45,45,0.08)':''}">
+        <td style="font-weight:700;color:#fff;font-size:11px;max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${l.tool_name}</td>
+        <td style="font-family:monospace;font-size:10px;color:var(--jd-yellow)">${l.tool_code||''}</td>
+        <td style="font-size:11px">${branchName(l.from_branch)}</td>
+        <td style="font-size:11px;color:#85B7EB;font-weight:700">${branchName(l.to_branch)}</td>
+        <td style="font-size:11px">${fmtDate(l.date_from)}</td>
+        <td style="font-size:11px;color:${overdue?'#f09595':'#D0D0C8'}">${fmtDate(l.date_to)}${overdue?' ⚠':''}</td>
+        <td style="font-size:11px">${l.user_name}</td>
+        <td>${sBadge('active')}</td>
+        <td><button class="btn btn-sm btn-primary" onclick="openReturnLoan('${l.id}')">✅ Registrar devolución</button></td>
+      </tr>`;
+    });
+    h+=`</tbody></table></div></div>`;
+  }
+
+  if(returned.length){
+    h+=`<div class="section-divider">✅ DEVUELTAS (${returned.length})</div>`;
+    h+=`<div class="card"><div style="overflow-x:auto"><table><thead><tr><th>Herramienta</th><th>De</th><th>A</th><th>Salida</th><th>Devolución</th><th>Responsable</th><th>Foto</th></tr></thead><tbody>`;
+    returned.slice(0,20).forEach(l=>{
+      h+=`<tr><td style="font-weight:700;color:#fff;font-size:11px">${l.tool_name}</td><td style="font-size:11px">${branchName(l.from_branch)}</td><td style="font-size:11px">${branchName(l.to_branch)}</td><td style="font-size:11px">${fmtDate(l.date_from)}</td><td style="font-size:11px;color:#7dc867">${fmtDate(l.returned_at?.split('T')[0])}</td><td style="font-size:11px">${l.returned_by||l.user_name}</td></tr>`;
+    });
+    h+=`</tbody></table></div></div>`;
+  }
+  document.getElementById('main-content').innerHTML=h;
+}
+
+// ── RETURN LOAN ───────────────────────────────────────────────────
+function openReturnLoan(loanId){
+  const loan=loans.find(l=>l.id===loanId);if(!loan)return;
+  const t=getTool(loan.tool_id);
+  const b=`<div class="alert alert-info">✅ Registrá la devolución de esta herramienta a su sucursal de origen.</div>
+  <div style="background:#2a2a2a;border-radius:3px;padding:12px;margin-bottom:14px">
+    <div style="font-weight:700;color:#fff;font-size:13px;margin-bottom:8px">🔧 ${loan.tool_name}</div>
+    <div class="info-row"><span class="info-label">Código</span><span style="font-family:monospace;color:var(--jd-yellow)">${loan.tool_code}</span></div>
+    <div class="info-row"><span class="info-label">Sucursal dueña</span><strong style="color:#fff">${branchName(loan.from_branch)}</strong></div>
+    <div class="info-row"><span class="info-label">Estaba prestada a</span><strong style="color:#85B7EB">${branchName(loan.to_branch)}</strong></div>
+    <div class="info-row"><span class="info-label">Fecha de salida</span>${fmtDate(loan.date_from)}</div>
+    <div class="info-row" style="border:none"><span class="info-label">Vencimiento</span>${fmtDate(loan.date_to)}</div>
+  </div>
+  <div class="form-group"><div class="form-label">Quién recibe / confirma la devolución *</div><input id="ret-user" value="${curUser()}" placeholder="Nombre del responsable (obligatorio)"/></div>
+  <div class="form-group"><div class="form-label">Observaciones / Estado de la herramienta</div><textarea id="ret-note" placeholder="Estado de la herramienta al volver, novedades..."></textarea></div>
+  <div class="form-group"><div class="form-label">📷 Foto del estado al devolver (opcional)</div>
+    <input type="file" id="ret-photo" accept="image/*" style="font-size:11px;padding:6px;color:#D0D0C8"/>
+    <div id="ret-photo-preview" style="margin-top:8px"></div>
+  </div>
+  <div class="alert alert-info">Al confirmar, la herramienta vuelve automáticamente a <strong>${branchName(loan.from_branch)}</strong> como sucursal actual.</div>`;
+  openModal('Registrar devolución',b,`<button class="btn" onclick="closeModal()">Cancelar</button><button class="btn btn-primary" onclick="confirmReturn('${loanId}')">✅ Confirmar devolución</button>`);
+}
+
+async function confirmReturn(loanId){
+  const loan=loans.find(l=>l.id===loanId);if(!loan)return;
+  const retUser=document.getElementById('ret-user').value.trim();
+  const retNote=document.getElementById('ret-note').value.trim();
+  if(!retUser){alert('El nombre de quien recibe es obligatorio');return;}
+  const now=new Date().toISOString();
+  let photoUrl='';
+  // Upload photo if provided
+  const photoFile=document.getElementById('ret-photo')?.files?.[0];
+  if(photoFile){
+    const ext=photoFile.name.split('.').pop();
+    const fileName=`devolucion_${loanId}_${Date.now()}.${ext}`;
+    const {data:uploadData,error:uploadError}=await db.storage.from('devoluciones').upload(fileName,photoFile,{contentType:photoFile.type});
+    if(!uploadError){
+      const {data:urlData}=db.storage.from('devoluciones').getPublicUrl(fileName);
+      photoUrl=urlData?.publicUrl||'';
+    }
+  }
+  // Update loan
+  await db.from('loans').update({status:'returned',returned_at:now,returned_by:retUser,return_note:retNote,return_photo_url:photoUrl}).eq('id',loanId);
+  // Return tool to home branch
+  await db.from('tools').update({current_branch:loan.from_branch}).eq('id',loan.tool_id);
+  // History
+  await addHistory({type:'return',tool_id:loan.tool_id,tool_name:loan.tool_name,from_val:loan.to_branch,to_val:loan.from_branch,branch:curBranch(),user_name:retUser,note:`Devuelta desde ${branchName(loan.to_branch)}${retNote?' – '+retNote:''}${photoUrl?' 📷':''}`});
+  closeModal();await loadAll();render();
+}
+
+// ── RESERVATIONS ──────────────────────────────────────────────────
+function renderReservations(){
+  document.getElementById('page-title').textContent='Reservas';
+  document.getElementById('topbar-actions').innerHTML=`<button class="btn btn-yellow" onclick="openNewReservation()">+ Nueva reserva</button>`;
+  const conflicts=getConflicts();
+  let h='';
+  if(conflicts.length>0)h+=`<div class="alert alert-warning">⚠ ${conflicts.length} conflicto${conflicts.length>1?'s':''} detectado${conflicts.length>1?'s':''}. <span style="cursor:pointer;text-decoration:underline" onclick="showPage('conflicts')">Ver →</span></div>`;
+  const pend=reservations.filter(r=>r.status==='pending'),appr=reservations.filter(r=>r.status==='approved'),canc=reservations.filter(r=>r.status==='cancelled');
+  if(pend.length){h+=`<div class="section-divider" style="border-top:none;padding-top:0">⏳ PENDIENTES (${pend.length})</div><div class="card">`+rTable(pend,true)+`</div>`;}
+  h+=`<div class="section-divider" ${!pend.length?'style="border-top:none;padding-top:0"':''}>✓ APROBADAS (${appr.length})</div><div class="card">`;
+  h+=appr.length?rTable(appr,false):`<div class="no-data">Sin reservas aprobadas</div>`;
+  h+=`</div>`;
+  if(canc.length){h+=`<div class="section-divider">CANCELADAS (${canc.length})</div><div class="card">`+rTable(canc,false)+`</div>`;}
+  document.getElementById('main-content').innerHTML=h;
+}
+
+function rTable(list,actions){
+  let h=`<div style="overflow-x:auto"><table><thead><tr><th>Herramienta</th><th>Código</th><th>Técnico</th><th>Cliente</th><th>Sucursal</th><th>Desde</th><th>Hasta</th><th>Turno</th><th>COR</th><th>Estado</th>${actions?'<th>Acciones</th>':''}</tr></thead><tbody>`;
+  list.forEach(r=>{h+=`<tr>
+    <td style="font-weight:700;color:#fff;font-size:11px;max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.tool_name}</td>
+    <td style="font-family:monospace;font-size:10px;color:var(--jd-yellow)">${r.tool_code||''}</td>
+    <td style="font-size:11px;color:#fff;font-weight:700">${r.user_name}</td>
+    <td style="font-size:11px;color:#85B7EB">${r.client_name||'-'}</td>
+    <td style="font-size:11px">${branchName(r.branch)}</td>
+    <td style="font-size:11px">${fmtDate(r.date_from)}</td>
+    <td style="font-size:11px">${fmtDate(r.date_to)}</td>
+    <td style="font-size:11px">${r.shift||'-'}</td>
+    <td style="font-size:11px;color:var(--jd-yellow)">${r.cor||'-'}</td>
+    <td>${sBadge(r.status)}</td>
+    ${actions?`<td style="white-space:nowrap"><button class="btn btn-sm btn-primary" onclick="approveR('${r.id}')">✓ Aprobar</button> <button class="btn btn-sm btn-danger" onclick="cancelR('${r.id}')">✕</button></td>`:''}
+  </tr>`;});
+  return h+`</tbody></table></div>`;
+}
+
+async function approveR(id){
+  const r=reservations.find(x=>x.id===id);if(!r)return;
+  const t=getTool(r.tool_id);
+  // Only home branch can approve loans to other branches
+  if(t && r.branch!==t.home_branch && curBranch()!==t.home_branch){
+    alert(`Solo la sucursal dueña de esta herramienta puede aprobar este préstamo.\n\nSucursal dueña: ${branchName(t.home_branch)}\n\nCambiá tu sucursal activa si sos de esa sucursal.`);
+    return;
+  }
+  // PIN verification
+  const pins=JSON.parse(localStorage.getItem('conci_pins')||'{}');
+  const myPin=pins[curBranch()];
+  if(myPin){
+    const entered=prompt(`Ingresá el PIN de aprobación para ${branchName(curBranch())}:`);
+    if(entered===null)return;
+    if(entered!==myPin){alert('PIN incorrecto. No se puede aprobar.');return;}
+  }
+  await db.from('reservations').update({status:'approved'}).eq('id',id);
+  // Si es de otra sucursal, crear préstamo automáticamente
+  if(t&&r.branch!==t.current_branch){
+    const loan={id:uid(),tool_id:r.tool_id,tool_name:r.tool_name,tool_code:r.tool_code||t.code,from_branch:t.current_branch,to_branch:r.branch,date_from:r.date_from,date_to:r.date_to,user_name:r.user_name,reservation_id:id,status:'active',purpose:r.purpose||''};
+    await db.from('loans').insert(loan);
+    await db.from('tools').update({current_branch:r.branch}).eq('id',r.tool_id);
+    await addHistory({type:'loan',tool_id:r.tool_id,tool_name:r.tool_name,from_val:t.current_branch,to_val:r.branch,branch:curBranch(),user_name:curUser(),note:`Préstamo aprobado para ${branchName(r.branch)}`});
+  } else {
+    await addHistory({type:'reserve',tool_id:r.tool_id,tool_name:r.tool_name,from_val:'pending',to_val:'approved',branch:r.branch,user_name:curUser(),note:'Reserva aprobada'});
+  }
+  await loadAll();render();
+}
+
+async function cancelR(id){
+  const r=reservations.find(x=>x.id===id);if(!r)return;
+  await db.from('reservations').update({status:'cancelled'}).eq('id',id);
+  await addHistory({type:'reserve',tool_id:r.tool_id,tool_name:r.tool_name,from_val:r.status,to_val:'cancelled',branch:r.branch,user_name:curUser(),note:'Reserva cancelada'});
+  await loadAll();render();
+}
+
+// ── CONFLICTS ─────────────────────────────────────────────────────
+function renderConflicts(){
+  document.getElementById('page-title').textContent='Conflictos de reserva';
+  document.getElementById('topbar-actions').innerHTML='';
+  const c=getConflicts();
+  let h='';
+  if(!c.length)h=`<div class="card"><div class="no-data">✓ Sin conflictos detectados.</div></div>`;
+  else{
+    h+=`<div class="alert alert-warning">⚠ Conflictos detectados con anticipación para evitar caídas de productividad.</div>`;
+    c.forEach((cf,i)=>{h+=`<div class="card"><div class="card-header"><span class="card-title" style="color:var(--jd-yellow)">Conflicto ${i+1}: ${cf.a.tool_name}</span></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px"><div style="border:1px solid #444;border-radius:3px;padding:12px"><div style="font-size:9px;color:var(--jd-yellow);font-weight:900;margin-bottom:6px">RESERVA A</div><div style="font-weight:700;color:#fff;font-size:12px">${branchName(cf.a.branch)}</div><div style="font-size:11px;color:var(--jd-muted);margin-top:4px">${cf.a.user_name} · ${fmtDate(cf.a.date_from)}–${fmtDate(cf.a.date_to)} · Turno: ${cf.a.shift||'-'}</div><div style="margin-top:6px">${sBadge(cf.a.status)}</div></div><div style="border:1px solid #444;border-radius:3px;padding:12px"><div style="font-size:9px;color:var(--jd-yellow);font-weight:900;margin-bottom:6px">RESERVA B</div><div style="font-weight:700;color:#fff;font-size:12px">${branchName(cf.b.branch)}</div><div style="font-size:11px;color:var(--jd-muted);margin-top:4px">${cf.b.user_name} · ${fmtDate(cf.b.date_from)}–${fmtDate(cf.b.date_to)} · Turno: ${cf.b.shift||'-'}</div><div style="margin-top:6px">${sBadge(cf.b.status)}</div></div></div><div style="margin-top:12px;display:flex;gap:8px"><button class="btn btn-sm btn-primary" onclick="approveR('${cf.a.id}');cancelR('${cf.b.id}')">Priorizar A, cancelar B</button><button class="btn btn-sm" onclick="approveR('${cf.b.id}');cancelR('${cf.a.id}')">Priorizar B, cancelar A</button></div></div>`;});
+  }
+  document.getElementById('main-content').innerHTML=h;
+}
+
+// ── BRANCHES ──────────────────────────────────────────────────────
+function renderBranches(){
+  document.getElementById('page-title').textContent='Sucursales';
+  document.getElementById('topbar-actions').innerHTML='';
+  const today=new Date();
+  const firstMonth=new Date(today.getFullYear(),today.getMonth(),1).toISOString().split('T')[0];
+  const todayStr=today.toISOString().split('T')[0];
+  let h=`<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:16px;background:#222;padding:12px 16px;border-radius:4px;border:1px solid #333">
+    <span style="font-size:10px;color:var(--jd-yellow);font-weight:900;letter-spacing:1px">FILTRAR RESERVAS:</span>
+    <button class="filter-btn active" onclick="setBranchRange(this,'all')">Todo</button>
+    <button class="filter-btn" onclick="setBranchRange(this,'30')">Últimos 30 días</button>
+    <button class="filter-btn" onclick="setBranchRange(this,'month')">Este mes</button>
+    <button class="filter-btn" onclick="setBranchRange(this,'year')">Este año</button>
+    <input type="date" id="br-from" value="${firstMonth}" style="width:130px;font-size:11px;padding:4px 8px"/>
+    <input type="date" id="br-to" value="${todayStr}" style="width:130px;font-size:11px;padding:4px 8px"/>
+    <button class="btn btn-primary btn-sm" onclick="applyBranchFilter()">Aplicar</button>
+  </div><div id="branches-content"></div>`;
+  document.getElementById('main-content').innerHTML=h;
+  renderBranchesContent('all',null,null);
+}
+
+function setBranchRange(el,range){
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  const today=new Date();
+  let from=null,to=today.toISOString().split('T')[0];
+  if(range==='30'){const d=new Date();d.setDate(d.getDate()-30);from=d.toISOString().split('T')[0];}
+  else if(range==='month'){from=new Date(today.getFullYear(),today.getMonth(),1).toISOString().split('T')[0];}
+  else if(range==='year'){from=new Date(today.getFullYear(),0,1).toISOString().split('T')[0];}
+  if(from)document.getElementById('br-from').value=from;
+  document.getElementById('br-to').value=to;
+  renderBranchesContent(range,from,to);
+}
+
+function applyBranchFilter(){
+  const from=document.getElementById('br-from').value;
+  const to=document.getElementById('br-to').value;
+  if(!from||!to){alert('Seleccioná ambas fechas');return;}
+  renderBranchesContent('custom',from,to);
+}
+
+function renderBranchesContent(range,fromDate,toDate){
+  const filterRes=(r)=>{
+    if(range==='all')return true;
+    const d=r.date_from||'';
+    if(fromDate&&d<fromDate)return false;
+    if(toDate&&d>toDate)return false;
+    return true;
+  };
+  let h=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">`;
+  Object.keys(BRANCHES).forEach(k=>{
+    const owned=tools.filter(t=>t.home_branch===k);
+    const here=tools.filter(t=>t.current_branch===k&&t.home_branch===k&&!getActiveLoan(t.id));
+    const prestadas=loans.filter(l=>l.from_branch===k&&l.status==='active');
+    const recibidas=loans.filter(l=>l.to_branch===k&&l.status==='active');
+    h+=`<div style="background:#222;border:1.5px solid #333;border-radius:4px;padding:14px">
+    <div style="font-size:12px;font-weight:900;color:#fff;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid #333">🏢 ${BRANCHES[k]}</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px">
+      <div class="metric-card" style="padding:8px"><div class="metric-label">Son suyas</div><div class="metric-value" style="font-size:18px">${owned.length}</div></div>
+      <div class="metric-card" style="padding:8px"><div class="metric-label">Disponibles aquí</div><div class="metric-value green" style="font-size:18px">${here.length}</div></div>
+      <div class="metric-card yellow" style="padding:8px"><div class="metric-label">Prestadas a otros</div><div class="metric-value yellow" style="font-size:18px">${prestadas.length}</div></div>
+      <div class="metric-card" style="padding:8px;border-color:#378ADD"><div class="metric-label">Recibidas</div><div class="metric-value blue" style="font-size:18px">${recibidas.length}</div></div>
+    </div>
+    ${prestadas.length?`<div style="font-size:10px;color:var(--jd-yellow);font-weight:900;margin-bottom:4px;letter-spacing:1px">PRESTADAS A:</div>`+prestadas.map(l=>`<div style="font-size:11px;color:#D0D0C8;padding:3px 0;border-bottom:1px solid #2a2a2a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">→ ${branchName(l.to_branch).split('–')[0].trim()}: <span style="color:var(--jd-yellow);font-family:monospace">${l.tool_code}</span> ${l.tool_name}</div>`).join(''):''}
+    ${recibidas.length?`<div style="font-size:10px;color:#85B7EB;font-weight:900;margin-top:8px;margin-bottom:4px;letter-spacing:1px">RECIBIDAS DE:</div>`+recibidas.map(l=>`<div style="font-size:11px;color:#D0D0C8;padding:3px 0;border-bottom:1px solid #2a2a2a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">← ${branchName(l.from_branch).split('–')[0].trim()}: <span style="color:var(--jd-yellow);font-family:monospace">${l.tool_code}</span> ${l.tool_name}</div>`).join(''):''}
+    </div>`;
+  });
+  h+=`</div>`;
+  const el=document.getElementById('branches-content');
+  if(el)el.innerHTML=h;
+}
+
+// ── HISTORY ───────────────────────────────────────────────────────
+function renderHistory(){
+  document.getElementById('page-title').textContent='Historial de actividad';
+  document.getElementById('topbar-actions').innerHTML=`<button class="btn btn-yellow" onclick="exportHistory()">⬇️ Exportar CSV</button>`;
+  let h='';
+  if(!history.length)h=`<div class="card"><div class="no-data">Sin historial</div></div>`;
+  else{h=`<div class="card"><div class="timeline">`;history.forEach(r=>{h+=`<div class="tl-item"><div class="tl-dot ${r.type==='loan'?'blue':r.type==='return'?'':r.type==='reserve'?'warn':r.to_val==='out'?'danger':''}"></div><div class="tl-time">${fmtDT(r.created_at)}</div><div class="tl-text">${hText(r)}</div><div class="tl-sub">${r.user_name||''}${r.note?' · '+r.note:''}</div></div>`;});h+=`</div></div>`;}
+  document.getElementById('main-content').innerHTML=h;
+}
+
+// ── EXPORT ────────────────────────────────────────────────────────
+async function exportHistory(){
+  const fecha=new Date().toISOString().split('T')[0];
+  // Historial
+  const {data}=await db.from('history').select('*').order('created_at',{ascending:false});
+  let csv='\uFEFF';
+  csv+='Fecha,Tipo,Herramienta,De,A / Estado,Sucursal,Usuario,Nota\n';
+  (data||[]).forEach(h=>{csv+=csvRow([fmtDT(h.created_at),h.type||'',h.tool_name||'',h.from_val||'',h.to_val||'',branchName(h.branch||''),h.user_name||'',h.note||'']);});
+  downloadCSV(csv,`CONCI-Historial-${fecha}.csv`);
+  // Reservas
+  let csv2='\uFEFF';
+  csv2+='Herramienta,Codigo,Tecnico,Sucursal,Desde,Hasta,Turno,COR,Motivo,Estado\n';
+  reservations.forEach(r=>{csv2+=csvRow([r.tool_name,r.tool_code||'',r.user_name,branchName(r.branch),fmtDate(r.date_from),fmtDate(r.date_to),r.shift||'',r.cor||'',r.purpose||'',r.status]);});
+  downloadCSV(csv2,`CONCI-Reservas-${fecha}.csv`);
+  // Prestamos
+  let csv3='\uFEFF';
+  csv3+='Herramienta,Codigo,Sucursal duena,Prestada a,Fecha salida,Vence,Responsable,Estado,Devuelta por,Nota devolucion\n';
+  loans.forEach(l=>{csv3+=csvRow([l.tool_name,l.tool_code||'',branchName(l.from_branch),branchName(l.to_branch),fmtDate(l.date_from),fmtDate(l.date_to),l.user_name,l.status==='active'?'En prestamo':'Devuelta',l.returned_by||'',l.return_note||'']);});
+  downloadCSV(csv3,`CONCI-Prestamos-${fecha}.csv`);
+  // Inventario
+  let csv4='\uFEFF';
+  csv4+='Codigo,Nombre,Descripcion,Estante,Sucursal duena,Ubicacion actual,Estado\n';
+  tools.forEach(t=>{const loan=getActiveLoan(t.id);csv4+=csvRow([t.code,t.name,t.description||'',t.ubicacion||'',branchName(t.home_branch),loan?branchName(loan.to_branch):branchName(t.current_branch),loan?'En prestamo':t.status==='out'?'Fuera de servicio':'Operativa']);});
+  downloadCSV(csv4,`CONCI-Inventario-${fecha}.csv`);
+  alert('Se descargaron 4 archivos CSV: Historial, Reservas, Préstamos e Inventario.');
+}
+function csvRow(arr){return arr.map(v=>'"'+String(v||'').replace(/"/g,'""')+'"').join(',')+('\n');}
+function downloadCSV(csv,filename){
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download=filename;a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ── ADMIN ─────────────────────────────────────────────────────────
+function renderAdmin(){
+  document.getElementById('page-title').textContent='Configuración';
+  document.getElementById('topbar-actions').innerHTML='';
+  let h=`<div class="card"><div class="card-header"><span class="card-title">🏢 Nombres de sucursales</span></div>`;
+  Object.keys(BRANCHES).forEach(k=>{h+=`<div class="form-group"><div class="form-label">${k}</div><input id="br-${k}" value="${BRANCHES[k]}"/></div>`;});
+  h+=`<button class="btn btn-primary" onclick="saveBranchNames()">✓ Guardar nombres</button></div>`;
+  h+=`<div class="card" style="margin-top:14px"><div class="card-header"><span class="card-title">📊 Estado del sistema</span></div>
+  <div style="font-size:12px;color:#D0D0C8;line-height:2.2">
+    <div>🔧 Herramientas: <strong style="color:#fff">${tools.length}</strong></div>
+    <div>🔄 Préstamos activos: <strong style="color:#85B7EB">${loans.filter(l=>l.status==='active').length}</strong></div>
+    <div>📅 Reservas totales: <strong style="color:#fff">${reservations.length}</strong></div>
+    <div>📋 Eventos en historial: <strong style="color:#fff">${history.length}</strong></div>
+    <div>🌐 Base de datos: <strong style="color:#7dc867">Supabase – Tiempo real activo</strong></div>
+  </div></div>`;
+  const pins=JSON.parse(localStorage.getItem('conci_pins')||'{}');
+  h+=`<div class="card" style="margin-top:14px"><div class="card-header"><span class="card-title">🔐 PIN de aprobación por sucursal</span></div><div style="font-size:12px;color:#D0D0C8;margin-bottom:12px">Configurá un PIN por sucursal para aprobar reservas. Vacío = sin PIN.</div>${Object.keys(BRANCHES).map(k=>`<div class="form-group"><div class="form-label">${BRANCHES[k]}</div><input id="pin-${k}" type="password" placeholder="PIN de aprobación" value="${pins[k]||''}"/></div>`).join('')}<button class="btn btn-primary" onclick="savePINs()">✓ Guardar PINs</button></div>`;
+  h+=`<div class="card" style="margin-top:14px"><div class="card-header"><span class="card-title">📥 Importar inventario</span></div>
+  <div style="font-size:12px;color:#D0D0C8;margin-bottom:12px">Cargá el inventario de las 302 herramientas del Excel. No borra las existentes.</div>
+  <button class="btn btn-yellow" onclick="importInitialTools()" id="import-btn">⬆️ Importar 302 herramientas</button>
+  <div id="import-status" style="margin-top:8px;font-size:11px;color:var(--jd-muted)"></div></div>
+  <div class="card" style="margin-top:14px"><div class="card-header"><span class="card-title">⚙️ SQL para nueva tabla loans</span></div>
+  <div style="font-size:12px;color:#D0D0C8;margin-bottom:10px">Si migrás desde la versión anterior, ejecutá este SQL en Supabase para agregar la tabla de préstamos:</div>
+  <textarea style="height:180px;font-family:monospace;font-size:11px;background:#111;color:#7dc867" readonly>${getLoansSQL()}</textarea>
+  <button class="btn btn-sm" style="margin-top:8px" onclick="navigator.clipboard.writeText(document.querySelector('textarea').value).then(()=>alert('Copiado'))">📋 Copiar SQL</button></div>`;
+  document.getElementById('main-content').innerHTML=h;
+}
+
+function getPhotoSQL(){
+return "alter table tools add column if not exists photo_url text default '';";}
+
+function getLoansSQL(){
+return 'create table if not exists loans (\n  id text primary key,\n  tool_id text,\n  tool_name text,\n  tool_code text,\n  from_branch text,\n  to_branch text,\n  date_from date,\n  date_to date,\n  user_name text,\n  reservation_id text,\n  purpose text,\n  status text default \'active\',\n  returned_at timestamptz,\n  returned_by text,\n  return_note text,\n  created_at timestamptz default now()\n);\nalter table loans enable row level security;\ncreate policy \"allow_all_loans\" on loans\n  for all using (true) with check (true);\nalter publication supabase_realtime add table loans;';
+}
+
+function savePINs(){
+  const pins={};
+  Object.keys(BRANCHES).forEach(k=>{
+    const el=document.getElementById('pin-'+k);
+    if(el&&el.value.trim())pins[k]=el.value.trim();
+  });
+  localStorage.setItem('conci_pins',JSON.stringify(pins));
+  alert('PINs guardados correctamente.');
+}
+
+async function saveBranchNames(){
+  const rows=Object.keys(BRANCHES).map(k=>{const e=document.getElementById('br-'+k);if(e&&e.value.trim())BRANCHES[k]=e.value.trim();return{key:k,value:BRANCHES[k]};});
+  await db.from('branches_config').upsert(rows);
+  refreshBranchSelect();alert('Guardado.');}
+
+// ── MODAL ─────────────────────────────────────────────────────────
+function openModal(title,body,footer){
+  document.getElementById('modal-title').textContent=title;
+  document.getElementById('modal-body').innerHTML=body;
+  document.getElementById('modal-footer').innerHTML=footer;
+  document.getElementById('modal-overlay').style.display='flex';
+}
+function closeModal(){document.getElementById('modal-overlay').style.display='none';}
+
+// ── TOOL DETAIL ───────────────────────────────────────────────────
+function openToolDetail(id){
+  const t=getTool(id);if(!t)return;
+  const loan=getActiveLoan(t.id);
+  const rvs=reservations.filter(r=>r.tool_id===id&&r.status!=='cancelled');
+  let b=`<div style="display:flex;align-items:center;gap:14px;margin-bottom:14px">
+    ${t.photo_url?`<img src="${t.photo_url}" style="width:80px;height:60px;object-fit:cover;border-radius:4px;border:1.5px solid var(--jd-green)"/>`:'<div style="width:80px;height:60px;background:#2a2a2a;border-radius:4px;border:1.5px solid #444;display:flex;align-items:center;justify-content:center;font-size:24px">🔧</div>'}
+    <div><div style="font-size:14px;font-weight:900;color:#fff">${t.name}</div><div style="font-size:11px;color:var(--jd-yellow);font-family:monospace">${t.code}${t.is_custom?' · <span style="background:rgba(255,222,0,0.15);padding:1px 5px;border-radius:2px">FABRICADA EN TALLER</span>':''}</div></div>
+  </div>`;
+  if(loan){
+    b+=`<div class="alert alert-blue" style="margin-bottom:14px">🔄 <strong>En préstamo activo</strong><br><span style="font-size:11px">De: ${branchName(loan.from_branch)} → A: ${branchName(loan.to_branch)}<br>Salida: ${fmtDate(loan.date_from)} · Vence: ${fmtDate(loan.date_to)} · Responsable: ${loan.user_name}</span></div>`;
+  }
+  b+=`<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px">
+    <div class="metric-card" style="padding:8px"><div class="metric-label">Estante</div><div style="font-size:13px;font-weight:700;color:#fff">${t.ubicacion||'-'}</div></div>
+    <div class="metric-card" style="padding:8px"><div class="metric-label">Sucursal dueña</div><div style="font-size:11px;font-weight:700;color:#fff">${branchName(t.home_branch)}</div></div>
+    <div class="metric-card" style="padding:8px"><div class="metric-label">Ubicación actual</div><div style="font-size:11px;font-weight:700;color:${loan?'#85B7EB':'#fff'}">${loan?branchName(loan.to_branch):branchName(t.current_branch)}</div></div>
+  </div>
+  <div style="margin-bottom:12px">${toolStatusBadge(t)}</div>
+  <div class="form-group"><div class="form-label">Descripción</div><div style="font-size:12px;color:#D0D0C8">${t.description||t.name}</div></div>`;
+  if(rvs.length){b+=`<div class="form-label" style="margin-bottom:6px">Reservas activas</div>`;rvs.forEach(r=>{b+=`<div style="font-size:11px;padding:6px 8px;background:#2a2a2a;border-radius:3px;margin-bottom:4px">${branchName(r.branch)} · ${fmtDate(r.date_from)}–${fmtDate(r.date_to)} · ${r.user_name} ${sBadge(r.status)}</div>`;});}
+  const footer=`<button class="btn btn-danger btn-sm" onclick="toggleStatus('${t.id}','${t.status}')" style="margin-right:auto">${t.status==='ok'?'Marcar fuera de servicio':'Marcar operativa'}</button>
+    <button class="btn btn-sm" onclick="openEditTool('${t.id}')">✏️ Editar</button>
+    ${loan?`<button class="btn btn-sm btn-primary" onclick="closeModal();openReturnLoan('${loan.id}')">✅ Devolver</button>`:`<button class="btn btn-yellow btn-sm" onclick="closeModal();openReserveTool('${t.id}')">📅 Reservar</button>`}`;
+  openModal(t.code+' – '+t.name,b,footer);
+}
+
+// ── ADD/EDIT TOOL ─────────────────────────────────────────────────
+function openAddTool(){openModal('Nueva herramienta',toolForm(null),`<button class="btn" onclick="closeModal()">Cancelar</button><button class="btn btn-primary" onclick="saveNewTool()">Guardar</button>`);}
+function openEditTool(id){const t=getTool(id);openModal('Editar: '+t.code,toolForm(t),`<button class="btn" onclick="closeModal()">Cancelar</button><button class="btn btn-primary" onclick="saveEditTool('${id}')">Guardar cambios</button>`);}
+
+function toolForm(t){
+  const bkeys=Object.keys(BRANCHES);
+  return `<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+    <div class="form-group"><div class="form-label">Código *</div><input id="f-code" value="${t?t.code:''}" placeholder="Ej: JDG99999"/></div>
+    <div class="form-group"><div class="form-label">Ubicación (estante)</div><input id="f-ubic" value="${t?t.ubicacion||'':''}" placeholder="Ej: A15"/></div>
+  </div>
+  <div class="form-group"><div class="form-label">Nombre *</div><input id="f-name" value="${t?t.name:''}" placeholder="Nombre de la herramienta"/></div>
+  <div class="form-group"><div class="form-label">Descripción</div><textarea id="f-desc">${t?t.description||'':''}</textarea></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+    <div class="form-group"><div class="form-label">Sucursal dueña (depósito habitual)</div><select id="f-home">${bkeys.map(k=>`<option value="${k}" ${t&&t.home_branch===k?'selected':''}>${BRANCHES[k]}</option>`).join('')}</select></div>
+    <div class="form-group"><div class="form-label">Sucursal actual</div><select id="f-current">${bkeys.map(k=>`<option value="${k}" ${t&&t.current_branch===k?'selected':''}>${BRANCHES[k]}</option>`).join('')}</select></div>
+  </div>
+  <div class="form-group"><label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px;color:#D0D0C8"><input type="checkbox" id="f-custom" ${t&&t.is_custom?'checked':''} style="width:auto"/> Fabricada/personalizada en el concesionario</label></div>
+  <div class="form-group"><div class="form-label">Estado</div><select id="f-status"><option value="ok" ${!t||t.status==='ok'?'selected':''}>Operativa</option><option value="out" ${t&&t.status==='out'?'selected':''}>Fuera de servicio</option></select></div>
+  <div class="form-group"><div class="form-label">📷 Foto de la herramienta (opcional)</div>
+    ${t&&t.photo_url?`<div style="margin-bottom:8px"><img src="${t.photo_url}" style="max-width:120px;max-height:80px;border-radius:4px;border:1px solid #444" /><span style="font-size:10px;color:var(--jd-muted);margin-left:8px">Foto actual</span></div>`:''}
+    <input type="file" id="f-photo" accept="image/*" style="font-size:11px;padding:6px;color:#D0D0C8"/>
+  </div>`;
+}
+
+async function saveNewTool(){
+  const code=document.getElementById('f-code').value.trim(),name=document.getElementById('f-name').value.trim();
+  if(!code||!name){alert('Código y nombre son obligatorios');return;}
+  if(tools.find(t=>t.code===code)){alert('Ya existe ese código');return;}
+  const t={id:uid(),code,name,description:document.getElementById('f-desc').value.trim()||name,ubicacion:document.getElementById('f-ubic').value.trim(),home_branch:document.getElementById('f-home').value,current_branch:document.getElementById('f-current').value,is_custom:document.getElementById('f-custom').checked,status:document.getElementById('f-status').value,photo_url:''};
+  // Upload photo if provided
+  const photoFile=document.getElementById('f-photo')?.files?.[0];
+  if(photoFile){
+    const ext=photoFile.name.split('.').pop();
+    const fileName=`tool_${t.id}.${ext}`;
+    const{data:upData,error:upErr}=await db.storage.from('devoluciones').upload(fileName,photoFile,{contentType:photoFile.type,upsert:true});
+    if(!upErr){const{data:urlData}=db.storage.from('devoluciones').getPublicUrl(fileName);t.photo_url=urlData?.publicUrl||'';}
+  }
+  await db.from('tools').insert(t);
+  await addHistory({type:'alta',tool_id:t.id,tool_name:t.name,from_val:'',to_val:t.status,branch:curBranch(),user_name:curUser(),note:'Alta de herramienta'});
+  closeModal();await loadAll();render();
+}
+
+async function saveEditTool(id){
+  const t=getTool(id),oldBranch=t.current_branch,oldStatus=t.status;
+  const newBranch=document.getElementById('f-current').value,newStatus=document.getElementById('f-status').value;
+  const upd={code:document.getElementById('f-code').value.trim(),name:document.getElementById('f-name').value.trim(),description:document.getElementById('f-desc').value.trim(),ubicacion:document.getElementById('f-ubic').value.trim(),home_branch:document.getElementById('f-home').value,current_branch:newBranch,is_custom:document.getElementById('f-custom').checked,status:newStatus};
+  // Upload photo if new one provided
+  const photoFile2=document.getElementById('f-photo')?.files?.[0];
+  if(photoFile2){
+    const ext=photoFile2.name.split('.').pop();
+    const fileName=`tool_${id}.${ext}`;
+    const{data:upData,error:upErr}=await db.storage.from('devoluciones').upload(fileName,photoFile2,{contentType:photoFile2.type,upsert:true});
+    if(!upErr){const{data:urlData}=db.storage.from('devoluciones').getPublicUrl(fileName);upd.photo_url=urlData?.publicUrl||'';}
+  }
+  await db.from('tools').update(upd).eq('id',id);
+  if(newStatus!==oldStatus)await addHistory({type:'status',tool_id:id,tool_name:upd.name,from_val:oldStatus,to_val:newStatus,branch:curBranch(),user_name:curUser(),note:'Cambio de estado'});
+  if(newBranch!==oldBranch)await addHistory({type:'transfer',tool_id:id,tool_name:upd.name,from_val:oldBranch,to_val:newBranch,branch:curBranch(),user_name:curUser(),note:'Transferencia manual'});
+  closeModal();await loadAll();render();
+}
+
+async function toggleStatus(id,current){
+  const t=getTool(id);if(!t)return;
+  const ns=current==='ok'?'out':'ok';
+  await db.from('tools').update({status:ns}).eq('id',id);
+  await addHistory({type:'status',tool_id:id,tool_name:t.name,from_val:current,to_val:ns,branch:curBranch(),user_name:curUser(),note:'Cambio manual de estado'});
+  closeModal();await loadAll();render();
+}
+
+// ── RESERVATIONS CRUD ─────────────────────────────────────────────
+function openReserveTool(id){
+  const t=getTool(id);if(!t||t.status==='out'){alert('Herramienta fuera de servicio');return;}
+  const loan=getActiveLoan(id);
+  const min=fmtD(2);
+  const minInput=fmtD(1);
+  let warning='';
+  if(loan)warning=`<div class="alert alert-warning">⚠ Esta herramienta está actualmente prestada a ${branchName(loan.to_branch)} hasta el ${fmtDate(loan.date_to)}. La reserva quedará pendiente.</div>`;
+  const b=`<div style="background:#2a2a2a;border-radius:3px;padding:10px;margin-bottom:12px"><div style="font-weight:700;color:#fff;font-size:12px">${t.name}</div><div style="font-size:10px;color:var(--jd-yellow);font-family:monospace">${t.code} · Dueña: ${branchName(t.home_branch)} · Ubic: ${t.ubicacion||'-'}</div></div>
+  ${warning}<div class="alert alert-info">⏰ Mínimo 2 días de anticipación requeridos.</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+    <div class="form-group"><div class="form-label">Fecha desde *</div><input type="date" id="r-from" min="${minInput}" value="${min}"/></div>
+    <div class="form-group"><div class="form-label">Fecha hasta *</div><input type="date" id="r-to" min="${minInput}" value="${min}"/></div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+    <div class="form-group"><div class="form-label">Turno</div><select id="r-shift"><option>Mañana</option><option>Tarde</option><option>Noche</option><option>Día completo</option></select></div>
+    <div class="form-group"><div class="form-label">Sucursal que la necesita</div><select id="r-branch">${Object.keys(BRANCHES).map(k=>`<option value="${k}" ${k===curBranch()?'selected':''}>${BRANCHES[k]}</option>`).join('')}</select></div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+    <div class="form-group"><div class="form-label">Técnico solicitante *</div><input id="r-user" value="${curUser()}" placeholder="Nombre del técnico"/></div>
+    <div class="form-group"><div class="form-label">Cliente / Reparación *</div><input id="r-client" placeholder="Nombre del cliente"/></div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+    <div class="form-group"><div class="form-label">Nro. de COR (opcional)</div><input id="r-cor" placeholder="Ej: COR-2024-001"/></div>
+    <div class="form-group"><div class="form-label">Trabajo a realizar</div><input id="r-purpose-short" placeholder="Resumen del trabajo"/></div>
+  </div>
+  <div class="form-group"><div class="form-label">Descripción detallada</div><textarea id="r-purpose" placeholder="Detalle del trabajo a realizar..."></textarea></div>`;
+  openModal(`Reservar: ${t.code}`,b,`<button class="btn" onclick="closeModal()">Cancelar</button><button class="btn btn-yellow" onclick="submitReservation('${id}')">📅 Solicitar reserva</button>`);
+}
+
+function openNewReservation(){
+  if(!tools.filter(t=>t.status==='ok').length){alert('Sin herramientas operativas');return;}
+  const min=fmtD(2);
+  const minInput=fmtD(1);
+  const b=`<div class="form-group"><div class="form-label">Herramienta *</div><select id="r-tool" style="font-size:11px">${tools.filter(t=>t.status==='ok').map(t=>`<option value="${t.id}">${t.code} – ${t.name} (${branchName(t.home_branch).split('–')[0].trim()})</option>`).join('')}</select></div>
+  <div class="alert alert-info">⏰ Mínimo 2 días de anticipación requeridos.</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+    <div class="form-group"><div class="form-label">Fecha desde *</div><input type="date" id="r-from" min="${minInput}" value="${min}"/></div>
+    <div class="form-group"><div class="form-label">Fecha hasta *</div><input type="date" id="r-to" min="${minInput}" value="${min}"/></div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+    <div class="form-group"><div class="form-label">Turno</div><select id="r-shift"><option>Mañana</option><option>Tarde</option><option>Noche</option><option>Día completo</option></select></div>
+    <div class="form-group"><div class="form-label">Sucursal que la necesita</div><select id="r-branch">${Object.keys(BRANCHES).map(k=>`<option value="${k}" ${k===curBranch()?'selected':''}>${BRANCHES[k]}</option>`).join('')}</select></div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+    <div class="form-group"><div class="form-label">Técnico solicitante *</div><input id="r-user" value="${curUser()}" placeholder="Nombre del técnico"/></div>
+    <div class="form-group"><div class="form-label">Cliente / Reparación *</div><input id="r-client" placeholder="Nombre del cliente"/></div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+    <div class="form-group"><div class="form-label">Nro. de COR (opcional)</div><input id="r-cor" placeholder="Ej: COR-2024-001"/></div>
+    <div class="form-group"><div class="form-label">Resumen del trabajo</div><input id="r-purpose-short" placeholder="Resumen breve"/></div>
+  </div>
+  <div class="form-group"><div class="form-label">Descripción detallada</div><textarea id="r-purpose" placeholder="Detalle del trabajo..."></textarea></div>`;
+  openModal('Nueva reserva',b,`<button class="btn" onclick="closeModal()">Cancelar</button><button class="btn btn-yellow" onclick="submitReservation(document.getElementById('r-tool').value)">📅 Solicitar reserva</button>`);
+}
+
+async function submitReservation(toolId){
+  const t=getTool(toolId);
+  const from=document.getElementById('r-from').value,to=document.getElementById('r-to').value;
+  const user=(document.getElementById('r-user')||{value:''}).value.trim();
+  const branch=document.getElementById('r-branch').value;
+  const shift=document.getElementById('r-shift').value;
+  const client=(document.getElementById('r-client')||{value:''}).value.trim();
+  const cor=(document.getElementById('r-cor')||{value:''}).value.trim();
+  const purposeShort=(document.getElementById('r-purpose-short')||{value:''}).value.trim();
+  const purpose=(document.getElementById('r-purpose')||{value:''}).value.trim();
+  const fullPurpose=[cor?'COR: '+cor:'',purposeShort,purpose].filter(Boolean).join(' | ');
+  if(!from||!to||!user){alert('Completá los campos obligatorios');return;}
+  if(!client){alert('El campo Cliente / Reparación es obligatorio');return;}
+  if(to<from){alert('La fecha fin debe ser igual o posterior al inicio');return;}
+  // Validar minimo 2 dias - con tolerancia de zona horaria
+  const fromDate=new Date(from+'T12:00:00');
+  const minDate=new Date();minDate.setDate(minDate.getDate()+1);minDate.setHours(0,0,0,0);
+  if(fromDate<minDate){alert('La fecha de reserva debe ser con al menos 2 días de anticipación');return;}
+  // Check if already approved for overlapping dates in same branch
+  const conflicts=reservations.filter(r=>
+    r.tool_id===toolId &&
+    r.status==='approved' &&
+    r.branch===branch &&
+    r.date_from<=to && r.date_to>=from
+  );
+  if(conflicts.length>0){
+    const c=conflicts[0];
+    alert('Esta herramienta ya tiene una reserva aprobada para esas fechas en tu sucursal.\n\nTécnico: '+c.user_name+'\nFechas: '+fmtDate(c.date_from)+' a '+fmtDate(c.date_to));
+    return;
+  }
+  const r={id:uid(),tool_id:toolId,tool_name:t.name,tool_code:t.code,branch,user_name:user,client_name:client,date_from:from,date_to:to,shift,purpose:fullPurpose||purpose,cor:cor,status:'pending'};
+  await db.from('reservations').insert(r);
+  await addHistory({type:'reserve',tool_id:toolId,tool_name:t.name,from_val:'',to_val:'pending',branch,user_name:user,note:`Turno: ${shift}${purpose?' – '+purpose:''}`});
+  closeModal();await loadAll();showPage('reservations');
+}
+
+// ── HISTORY ───────────────────────────────────────────────────────
+async function addHistory(h){await db.from('history').insert({id:uid(),...h});}
+
+// ── IMPORT ────────────────────────────────────────────────────────
+const INITIAL_TOOLS=[{"code":"JDG10227","name":"Bracket, Mounting","description":"Bracket, Mounting","ubicacion":"A0"},{"code":"JDG11637","name":"Installer, Elevator Rivet","description":"Installer, Elevator Rivet","ubicacion":"A1"},{"code":"JDG11837","name":"Installer, Seal","description":"Installer, Seal","ubicacion":"A1"},{"code":"JDG10539A","name":"Adapter, Coolant Tank","description":"Adapter, Coolant Tank","ubicacion":"A10"},{"code":"JDG11838","name":"Installer, Seal","description":"Installer, Seal","ubicacion":"A11"},{"code":"JDG1662","name":"Ring, Spacer","description":"Ring, Spacer","ubicacion":"A12"},{"code":"JDG1103","name":"Compressor, Clutch Spring","description":"Compressor, Clutch Spring","ubicacion":"A13"},{"code":"JDG10909","name":"Tool, Holding","description":"Tool, Holding","ubicacion":"A14"},{"code":"JDG888","name":"Tool, Compression","description":"Tool, Compression","ubicacion":"A15"},{"code":"JDG580A","name":"Compressor, Slip Clutch Cam","description":"Compressor, Slip Clutch Cam","ubicacion":"A16"},{"code":"JDG1503","name":"Shaft Seal Installer Set","description":"Shaft Seal Installer Set","ubicacion":"A17"},{"code":"JDG708","name":"Crimper, AMP","description":"Crimper, AMP","ubicacion":"A18"},{"code":"JDG11226","name":"Box, Fan Solenoid Valve Test","description":"Box, Fan Solenoid Valve Test","ubicacion":"A19"},{"code":"JDG10001","name":"Kit, Hardware","description":"Kit, Hardware","ubicacion":"A2"},{"code":"JDG140","name":"Tool, Contact","description":"Tool, Contact","ubicacion":"A20"},{"code":"JDG8092","name":"Handle, Driver","description":"Handle, Driver","ubicacion":"A21"},{"code":"JDG1398","name":"Socket, Splined","description":"Socket, Splined","ubicacion":"A22"},{"code":"JDG1354","name":"Remover, Check Valve (Wedge Tip)","description":"Remover, Check Valve (Wedge Tip)","ubicacion":"A23"},{"code":"JDG11728","name":"Adjuster, End Play","description":"Adjuster, End Play","ubicacion":"A24"},{"code":"JDG1457","name":"Installer, Bearing","description":"Installer, Bearing","ubicacion":"A25"},{"code":"JDG11360","name":"Tool, Timing","description":"Tool, Timing","ubicacion":"A26"},{"code":"JDG409","name":"Guide","description":"Guide","ubicacion":"A27"},{"code":"JDG407","name":"Installer, Pilot","description":"Installer, Pilot","ubicacion":"A27"},{"code":"JDG408","name":"Adapter, Slide Hammer","description":"Adapter, Slide Hammer","ubicacion":"A27"},{"code":"JDG406","name":"Remover, Pilot","description":"Remover, Pilot","ubicacion":"A27"},{"code":"JDG11205","name":"Remover, Crank Oil Seal","description":"Remover, Crank Oil Seal","ubicacion":"A28"},{"code":"JDG1861","name":"Tool, Installation","description":"Tool, Installation","ubicacion":"A29"},{"code":"JDG772","name":"Bracket, Hold","description":"Bracket, Hold","ubicacion":"A3"},{"code":"JDG11101A","name":"Installer, Turbo Speed Sensor","description":"Installer, Turbo Speed Sensor","ubicacion":"A30"},{"code":"JDG11787","name":"Set, Test Adapter Cable","description":"Set, Test Adapter Cable","ubicacion":"A30"},{"code":"JDG1137","name":"Installer, Baffle","description":"Installer, Baffle","ubicacion":"A31"},{"code":"JDG1115","name":"Driver, Seal","description":"Driver, Seal","ubicacion":"A32"},{"code":"JDG1114A","name":"Driver, Bushing","description":"Driver, Bushing","ubicacion":"A33"},{"code":"JDG10049","name":"Scavenge Pump Oil Seal Install Tool","description":"Scavenge Pump Oil Seal Install Tool","ubicacion":"A34"},{"code":"JDG1390A","name":"Driver, Shaft","description":"Driver, Shaft","ubicacion":"A35"},{"code":"JDG1219B","name":"Installer, Seal","description":"Installer, Seal","ubicacion":"A36"},{"code":"JDG665","name":"Wrench, Axle Nut","description":"Wrench, Axle Nut","ubicacion":"A36"},{"code":"JDG1447A","name":"Seal Driver","description":"Seal Driver","ubicacion":"A37"},{"code":"JDG10024","name":"Adapter, Wrench","description":"Adapter, Wrench","ubicacion":"A38"},{"code":"JDG849A","name":"Guide, Disc","description":"Guide, Disc","ubicacion":"A4"},{"code":"JDG11644","name":"Compressor, Spring","description":"Compressor, Spring","ubicacion":"A5"},{"code":"JDG1452","name":"Ring, Adapter","description":"Ring, Adapter","ubicacion":"A6"},{"code":"JDG1215","name":"Installer","description":"Installer","ubicacion":"A7"},{"code":"JDG928","name":"Wrench, Spanner","description":"Wrench, Spanner","ubicacion":"A8"},{"code":"JDG1760","name":"Set, Spacer","description":"Set, Spacer","ubicacion":"A9"},{"code":"JT01735","name":"Gas Cock","description":"Gas Cock","ubicacion":"B0"},{"code":"JDG10659","name":"Driver, Seal","description":"Driver, Seal","ubicacion":"B1"},{"code":"JDG775","name":"Installer, Input","description":"Installer, Input","ubicacion":"B10"},{"code":"JDG10864","name":"Tool, Timing","description":"Tool, Timing","ubicacion":"B11"},{"code":"JDG234","name":"Adapter, Torque Wrench","description":"Adapter, Torque Wrench","ubicacion":"B12"},{"code":"JDG861","name":"Adapter, Wrench","description":"Adapter, Wrench","ubicacion":"B13"},{"code":"JDG1198","name":"Installer, Bearing","description":"Installer, Bearing","ubicacion":"B14"},{"code":"JDG10657","name":"Driver, Bushing","description":"Driver, Bushing","ubicacion":"B15"},{"code":"JDG1741","name":"Driver, Brushing","description":"Driver, Brushing","ubicacion":"B16"},{"code":"JDG10685","name":"Driver, Bearing, Needle","description":"Driver, Bearing, Needle","ubicacion":"B17"},{"code":"JDG10566","name":"Guide, Piston","description":"Guide, Piston","ubicacion":"B18"},{"code":"JDG10660","name":"Driver, Seal","description":"Driver, Seal","ubicacion":"B19"},{"code":"JDG1394","name":"Tool, Gear","description":"Tool, Gear","ubicacion":"B2"},{"code":"JDG10019A","name":"Installer, Seal","description":"Installer, Seal","ubicacion":"B20"},{"code":"JDG10810","name":"Socket, Shaft","description":"Socket, Shaft","ubicacion":"B21"},{"code":"JDG10018","name":"Installer, Seal","description":"Installer, Seal","ubicacion":"B22"},{"code":"JDG10563","name":"Installer, Bearing","description":"Installer, Bearing","ubicacion":"B23"},{"code":"JDG1493","name":"Tool, Compression","description":"Tool, Compression","ubicacion":"B24"},{"code":"JDG10560","name":"Installer, Seal","description":"Installer, Seal","ubicacion":"B25"},{"code":"JDG10565","name":"Tool, Centering","description":"Tool, Centering","ubicacion":"B26"},{"code":"JDG1257","name":"Snap Ring Rods","description":"Snap Ring Rods","ubicacion":"B27"},{"code":"JDG1949","name":"Vaso, tuerca","description":"Vaso, tuerca","ubicacion":"B27"},{"code":"KJD10505","name":"Plate, Gage","description":"Plate, Gage","ubicacion":"B28"},{"code":"JDG10667","name":"Tool, Removal","description":"Tool, Removal","ubicacion":"B29"},{"code":"JDG855","name":"Fixture, Tool","description":"Fixture, Tool","ubicacion":"B3"},{"code":"JDG10562","name":"Wrench, Nut","description":"Wrench, Nut","ubicacion":"B30"},{"code":"JDG666","name":"Wrench, Spanner","description":"Wrench, Spanner","ubicacion":"B31"},{"code":"JDG12037","name":"Ring, Spacer","description":"Ring, Spacer","ubicacion":"B32"},{"code":"KJD10320","name":"Plate, Remover Planetary Drive","description":"Plate, Remover Planetary Drive","ubicacion":"B33"},{"code":"JDG10760","name":"Set, Cap","description":"Set, Cap","ubicacion":"B34"},{"code":"JDG10059A","name":"Correa, elevación","description":"Correa, elevación","ubicacion":"B36"},{"code":"JDG10040","name":"Corre, elevador","description":"Corre, elevador","ubicacion":"B37"},{"code":"JDG11664","name":"Shaft Holder","description":"Shaft Holder","ubicacion":"B38"},{"code":"JDG11726","name":"Device, Clutch Disk Alignment","description":"Device, Clutch Disk Alignment","ubicacion":"B39"},{"code":"JDG10658","name":"Driver, Seal","description":"Driver, Seal","ubicacion":"B4"},{"code":"JDG1557A","name":"Instalador de retén","description":"Instalador de retén","ubicacion":"B40"},{"code":"JDG11727","name":"Adjuster, End Play","description":"Adjuster, End Play","ubicacion":"B41"},{"code":"JDE41296","name":"Puller","description":"Puller","ubicacion":"B42"},{"code":"JDG12016","name":"Installer, PRV","description":"Installer, PRV","ubicacion":"B43"},{"code":"JT05711","name":"Regulator, Nitrogen","description":"Regulator, Nitrogen","ubicacion":"B44"},{"code":"JDG992","name":"Extractor, manguito de desgaste delantero","description":"Extractor, manguito de desgaste delantero","ubicacion":"B45"},{"code":"JDG12109","name":"Tool, Chain Wear Measuring","description":"Tool, Chain Wear Measuring","ubicacion":"B46"},{"code":"JDG721","name":"Extractor de cubos","description":"Extractor de cubos","ubicacion":"B47"},{"code":"JDG10867","name":"Shim, Gage","description":"Shim, Gage","ubicacion":"B49"},{"code":"JDG10774","name":"Tool, Holding","description":"Tool, Holding","ubicacion":"B5"},{"code":"JDG1843","name":"Tool, Retaining","description":"Tool, Retaining","ubicacion":"B6"},{"code":"JDG1353","name":"Tool, Check Valve","description":"Tool, Check Valve","ubicacion":"B7"},{"code":"JDG1271","name":"Tool, Radiator Cap","description":"Tool, Radiator Cap","ubicacion":"B8"},{"code":"KJD10168A","name":"Wrench, Ring Nut","description":"Wrench, Ring Nut","ubicacion":"B8"},{"code":"JDG827","name":"Gage","description":"Gage","ubicacion":"B9"},{"code":"JDG1267","name":"Compressor, Spring","description":"Compressor, Spring","ubicacion":"C0"},{"code":"cq220590","name":"Extractor de asiento válvula","description":"Extractor de asiento válvula","ubicacion":"C3"},{"code":"JDG359","name":"Engarzadora","description":"Engarzadora","ubicacion":"C4"},{"code":"JDG1744","name":"Conjunto reparación terminales caja flexible","description":"Conjunto de reparación de terminales de la caja flexible","ubicacion":"C5"},{"code":"JDG1093","name":"Herramienta de par de apriete","description":"Herramienta de par de apriete","ubicacion":"C1"},{"code":"JT07115SUP","name":"Kit, adicional","description":"Kit, adicional","ubicacion":"C2"},{"code":"JDG1666","name":"Kit liberación freno estacionamiento","description":"Kit, liberación de freno de estacionamiento","ubicacion":"C30"},{"code":"JDG924A","name":"Tool, Holding","description":"Tool, Holding","ubicacion":"D0"},{"code":"KJD10318","name":"Pack, Clutch Remover Spring","description":"Pack, Clutch Remover Spring","ubicacion":"D1"},{"code":"KJD10740","name":"Adjusting tool, Blower bearing","description":"Adjusting tool, Blower bearing","ubicacion":"D10"},{"code":"KJD10333","name":"Shaft, Clearance Adjusting","description":"Shaft, Clearance Adjusting","ubicacion":"D11"},{"code":"JDG720-2","name":"Protector, Seal","description":"Protector, Seal","ubicacion":"D12"},{"code":"JDG720-1","name":"Screw, Forcing","description":"Screw, Forcing","ubicacion":"D12"},{"code":"JDG720-3","name":"Installer, Seal","description":"Installer, Seal","ubicacion":"D12"},{"code":"JDG720-4","name":"Ring","description":"Ring","ubicacion":"D12"},{"code":"JDG720-5","name":"Installer, Seal","description":"Installer, Seal","ubicacion":"D12"},{"code":"JDG10028","name":"Combine Main Engine PTO Gearbox Seal Installer","description":"Combine Main Engine PTO Gearbox Seal Installer","ubicacion":"D13"},{"code":"JDG10665","name":"Tool, Assembly","description":"Tool, Assembly","ubicacion":"D14"},{"code":"KJD10747","name":"Installer, Bearing","description":"Installer, Bearing","ubicacion":"D15"},{"code":"JDG825","name":"Installer, Seal","description":"Installer, Seal","ubicacion":"D16"},{"code":"KJD10521","name":"Adapter","description":"Adapter","ubicacion":"D17"},{"code":"KJD10522","name":"Adapter","description":"Adapter","ubicacion":"D17"},{"code":"JDG10866","name":"Driver, Seal","description":"Driver, Seal","ubicacion":"D18"},{"code":"JDG1450","name":"Pins, Support","description":"Pins, Support","ubicacion":"D19"},{"code":"KJD10506","name":"Plate, Fixation","description":"Plate, Fixation","ubicacion":"D2"},{"code":"JDG11696","name":"Adjuster, Pump Compensation","description":"Adjuster, Pump Compensation","ubicacion":"D20"},{"code":"JDG10680","name":"Bearing Master Cup","description":"Bearing Master Cup","ubicacion":"D21"},{"code":"KJD10748","name":"Installer, Sealing","description":"Installer, Sealing","ubicacion":"D22"},{"code":"JDG11055","name":"Removal, Front Crank Oil Seal","description":"Removal, Front Crank Oil Seal","ubicacion":"D23"},{"code":"JDT24B","name":"Compressor, Spring","description":"Compressor, Spring","ubicacion":"D24"},{"code":"JDG1459","name":"Driver, Gear","description":"Driver, Gear","ubicacion":"D25"},{"code":"JDG739-5B","name":"Replacer, Bushing","description":"Replacer, Bushing","ubicacion":"D26"},{"code":"JDC400P5A","name":"Installer, Seal","description":"Installer, Seal","ubicacion":"D27"},{"code":"KJD10336","name":"Installer, Seal","description":"Installer, Seal","ubicacion":"D28"},{"code":"JDG1069","name":"Remover and Installer, Main Bearing Cap","description":"Remover and Installer, Main Bearing Cap","ubicacion":"D29"},{"code":"KJD10862","name":"Installer, Bearing Housing","description":"Installer, Bearing Housing","ubicacion":"D3"},{"code":"JDG1456","name":"Tool, Installation","description":"Tool, Installation","ubicacion":"D31"},{"code":"KJD10861","name":"Installer, Bearing","description":"Installer, Bearing","ubicacion":"D32"},{"code":"JDG630","name":"Kit, Hydrostatic Transmission","description":"Kit, Hydrostatic Transmission","ubicacion":"D33"},{"code":"JT07008A","name":"Kit, Concave Service","description":"Kit, Concave Service","ubicacion":"D34"},{"code":"JDG1667","name":"Wrench, Torque","description":"Wrench, Torque","ubicacion":"D35"},{"code":"JDG10057","name":"Driver, Seat","description":"Driver, Seat","ubicacion":"D4"},{"code":"KJD10353","name":"Installer, Oil Seal","description":"Installer, Oil Seal","ubicacion":"D5"},{"code":"KJD10337","name":"Support","description":"Support","ubicacion":"D6"},{"code":"JDG1272","name":"Installer, Rockshaft Bushing/Seal","description":"Installer, Rockshaft Bushing/Seal","ubicacion":"D7"},{"code":"JDT44","name":"Socket","description":"Socket","ubicacion":"D9"},{"code":"JDG1216","name":"Tool, Holding","description":"Tool, Holding","ubicacion":"E0"},{"code":"KJD10335","name":"Shaft, Pulling","description":"Shaft, Pulling","ubicacion":"E0"},{"code":"JDG1660","name":"Installer, Seal","description":"Installer, Seal","ubicacion":"E0"},{"code":"JDG10293","name":"Adapter, Test","description":"Adapter, Test","ubicacion":"E10"},{"code":"JDC400-7","name":"Handle","description":"Handle","ubicacion":"E11"},{"code":"JDG12100","name":"Seal Driver Input PTO","description":"Seal Driver Input PTO","ubicacion":"E12"},{"code":"JDG826","name":"Gage","description":"Gage","ubicacion":"E13"},{"code":"JDG974A-4","name":"Pin, Guide","description":"Pin, Guide","ubicacion":"E13"},{"code":"JDG10868","name":"Spacer","description":"Spacer","ubicacion":"E14"},{"code":"JDG974A-1","name":"Installer, Seal","description":"Installer, Seal","ubicacion":"E15"},{"code":"JDG1952A","name":"Tool, Insertion","description":"Tool, Insertion","ubicacion":"E16"},{"code":"JDG10997","name":"Installation, Rear Crank Oil Seal","description":"Installation, Rear Crank Oil Seal","ubicacion":"E17"},{"code":"JT01748","name":"Bracket, Lifting","description":"Bracket, Lifting","ubicacion":"E19"},{"code":"KJD10357","name":"Installer, Oil Seal","description":"Installer, Oil Seal","ubicacion":"E20"},{"code":"JDG11683","name":"Spanner Wrench","description":"Spanner Wrench","ubicacion":"E21"},{"code":"JDG770","name":"Installer, Seal","description":"Installer, Seal","ubicacion":"E22"},{"code":"JDG1212","name":"Remover, Bushing","description":"Remover, Bushing","ubicacion":"E23"},{"code":"JDG877","name":"Mandrel, Loading","description":"Mandrel, Loading","ubicacion":"E24"},{"code":"KJD10986","name":"Installer, bearing","description":"Installer, bearing","ubicacion":"E25"},{"code":"JDG1172","name":"Puller Kit, Hub","description":"Puller Kit, Hub","ubicacion":"E26"},{"code":"JDG1218A","name":"Installer, Seal","description":"Installer, Seal","ubicacion":"E27"},{"code":"JT07120","name":"Assembly, Load Valve","description":"Assembly, Load Valve","ubicacion":"E28"},{"code":"JDG10683","name":"Tool, Backlash","description":"Tool, Backlash","ubicacion":"E31"},{"code":"JDG17042","name":"Driver, Front Axle Pinion Seal","description":"Driver, Front Axle Pinion Seal","ubicacion":"E33"},{"code":"JDG17034","name":"Driver, PTO Shaft Oil Seal","description":"Driver, PTO Shaft Oil Seal","ubicacion":"E34"},{"code":"JDG17033","name":"Driver, MFWD Shaft Oil Seal","description":"Driver, MFWD Shaft Oil Seal","ubicacion":"E35"},{"code":"JDG17032","name":"Driver, Input Shaft Oil Seal","description":"Driver, Input Shaft Oil Seal","ubicacion":"E36"},{"code":"JDG17040","name":"Installer, Metal Face Seal","description":"Installer, Metal Face Seal","ubicacion":"E37"},{"code":"JT05420","name":"Nitrogen Accumulator Charging Kit","description":"Nitrogen Accumulator Charging Kit (Agricultural)","ubicacion":"E38"},{"code":"JDG10273","name":"Box, Diagnostic Test","description":"Box, Diagnostic Test","ubicacion":"E39"},{"code":"JDG11985","name":"Tool, Pulley Alignment","description":"Tool, Pulley Alignment","ubicacion":"E40"},{"code":"JDG10544","name":"Remover, Seal","description":"Remover, Seal","ubicacion":"E42"},{"code":"JDG956","name":"Installer, Water Pump Bearing","description":"Installer, Water Pump Bearing","ubicacion":"E43"},{"code":"KJD10321","name":"Ring, Piston Installer","description":"Ring, Piston Installer","ubicacion":"E44"},{"code":"JDG10263","name":"Tool, Torque","description":"Tool, Torque","ubicacion":"E45"},{"code":"JDG12101","name":"Seal Driver Input","description":"Seal Driver Input","ubicacion":"E46"},{"code":"JDG1446","name":"Gauge, Height","description":"Gauge, Height","ubicacion":"E47"},{"code":"JDG1458","name":"Sleeve, Compression","description":"Sleeve, Compression","ubicacion":"E48"},{"code":"JDG11244","name":"Adapter, Fill Cap Test","description":"Adapter, Fill Cap Test","ubicacion":"E49"},{"code":"JDG11409","name":"Crimper, RWA Butt Splice","description":"Crimper, RWA Butt Splice","ubicacion":"E5"},{"code":"JDG10559","name":"Installer, Seal","description":"Installer, Seal","ubicacion":"E5"},{"code":"JDG362","name":"Tool, Extraction/Insertion 16-18 gauge","description":"Tool, Extraction/Insertion (16-18 gauge wire)","ubicacion":"E50"},{"code":"JDG11938","name":"Extractor de terminal","description":"Extractor de terminal","ubicacion":"E50"},{"code":"JDG1099","name":"Guide, Screen Installer","description":"Guide, Screen Installer","ubicacion":"E6"},{"code":"JDG1385","name":"Tool, Disconnect","description":"Tool, Disconnect","ubicacion":"E7"},{"code":"JDG1885","name":"Tool, STC Hose & Steel Line Fittings","description":"Tool, STC Hose & Steel Line Fittings","ubicacion":"E8"},{"code":"JDG10664","name":"Tool, Removal","description":"Tool, Removal","ubicacion":"E9"},{"code":"JDG954-5","name":"Installer, Seal","description":"Installer, Seal","ubicacion":"F1"},{"code":"KJD10213","name":"Wrench, Starter","description":"Wrench, Starter","ubicacion":"F10"},{"code":"JDG676","name":"Driver, Valve Seat","description":"Driver, Valve Seat","ubicacion":"F11"},{"code":"JDG675","name":"Installer, Valve Seat","description":"Installer, Valve Seat","ubicacion":"F12"},{"code":"KJD10332","name":"Installer, Bearing","description":"Installer, Bearing","ubicacion":"F13"},{"code":"JD252","name":"Driver, Bushing","description":"Driver, Bushing","ubicacion":"F14"},{"code":"KJD10331","name":"Planetary Drive Installer","description":"Planetary Drive Installer","ubicacion":"F15"},{"code":"JDG953-2","name":"Installer, Pilot","description":"Installer, Pilot","ubicacion":"F16"},{"code":"JDG953-1","name":"Driver","description":"Driver","ubicacion":"F17"},{"code":"JDE88","name":"Installer, Bushing","description":"Installer, Bushing","ubicacion":"F19"},{"code":"JDG954-1B","name":"Installer, Bearing","description":"Installer, Bearing","ubicacion":"F2"},{"code":"JDG971","name":"Cam/Crankshaft Timing Lock Pins","description":"Cam/Crankshaft Timing Lock Pins (Set of 2)","ubicacion":"F20"},{"code":"JDG11204","name":"Remover/Installer, Valve Guide","description":"Remover/Installer, Valve Guide","ubicacion":"F20"},{"code":"JDG10246A","name":"Pin, Cam Timing","description":"Pin, Cam Timing","ubicacion":"F21"},{"code":"JDG965","name":"Dipstick Tube Driver","description":"Dipstick Tube Driver","ubicacion":"F22"},{"code":"JDG738-2","name":"Pilot, Installer","description":"Pilot, Installer","ubicacion":"F23"},{"code":"JDG1962","name":"Tool, Insertion","description":"Tool, Insertion","ubicacion":"F26"},{"code":"JDG954-6","name":"Guide Sleeve","description":"Guide Sleeve","ubicacion":"F3"},{"code":"JDG11004A","name":"Installation, Crank Oil Seal","description":"Installation, Crank Oil Seal","ubicacion":"F30"},{"code":"JDG11056","name":"Removal, Rear Crank Seal","description":"Removal, Rear Crank Seal","ubicacion":"F31"},{"code":"JDG1145-2","name":"Plate, Retaining","description":"Plate, Retaining","ubicacion":"F34"},{"code":"JDG1145-1","name":"Plate, Retaining","description":"Plate, Retaining","ubicacion":"F35"},{"code":"JDE98-1","name":"Cup 6466 Rod","description":"Cup (6466-6 Rod)","ubicacion":"F36"},{"code":"JDE98-2","name":"Driver","description":"Driver","ubicacion":"F37"},{"code":"JDE98-3","name":"Pilot","description":"Pilot","ubicacion":"F38"},{"code":"JDE98-4","name":"Driver","description":"Driver","ubicacion":"F39"},{"code":"JDE98-5","name":"Driver","description":"Driver","ubicacion":"F40"},{"code":"JDE98-6","name":"Pilot","description":"Pilot","ubicacion":"F41"},{"code":"JDE98-7","name":"Driver","description":"Driver","ubicacion":"F42"},{"code":"JDE98-8","name":"Cup 6619 Rod","description":"Cup (6619-19 Rod)","ubicacion":"F43"},{"code":"JDE98-9","name":"Pilot","description":"Pilot","ubicacion":"F44"},{"code":"JDE98-10","name":"Bushing, Remover","description":"Bushing, Remover","ubicacion":"F45"},{"code":"JDG10999","name":"Ra Shaft Pedestal R & R","description":"Ra Shaft Pedestal R & R","ubicacion":"F46"},{"code":"JDG339","name":"Cup","description":"Cup","ubicacion":"F47"},{"code":"JDG338","name":"Cup","description":"Cup","ubicacion":"F48"},{"code":"JDG10549","name":"Front Oil Seal Installer","description":"Front Oil Seal Installer","ubicacion":"F49"},{"code":"JDG465","name":"Socket, Special Deep Well","description":"Socket, Special Deep Well","ubicacion":"F5"},{"code":"JDG1954","name":"Tool, Alignment","description":"Tool, Alignment","ubicacion":"F51"},{"code":"JDG10998","name":"Installer, Liner Shim","description":"Installer, Liner Shim","ubicacion":"F52"},{"code":"JDG1953","name":"Tool, Centering","description":"Tool, Centering","ubicacion":"F53"},{"code":"JDG10666","name":"Brush, Removal","description":"Brush, Removal","ubicacion":"F55"},{"code":"JDG10991","name":"Pin, Fuel Pump Timing","description":"Pin, Fuel Pump Timing","ubicacion":"F56"},{"code":"JDG10993","name":"Removal, Valve Guide","description":"Removal, Valve Guide","ubicacion":"F59"},{"code":"JDG10942","name":"Tool, Water Pump Installation/Removal","description":"Tool, Water Pump Installation/Removal","ubicacion":"F60"},{"code":"JDG10942P1","name":"Bridge","description":"Bridge","ubicacion":"F60"},{"code":"JDG10942P2","name":"Plate","description":"Plate","ubicacion":"F61"},{"code":"JDG10249","name":"Installer, Insert","description":"Installer, Insert","ubicacion":"F63"},{"code":"JDG685","name":"Socket, Spanner","description":"Socket, Spanner","ubicacion":"F64"},{"code":"JDG10942P3","name":"Puller Plate","description":"Puller Plate","ubicacion":"F64"},{"code":"JDG968-3","name":"Guide","description":"Guide","ubicacion":"F65"},{"code":"JDG993","name":"Template, Gear Train Backlash","description":"Template, Gear Train Backlash","ubicacion":"F66"},{"code":"JDG968-2","name":"Installer, Bushing","description":"Installer, Bushing","ubicacion":"F67"},{"code":"JDG968-1","name":"Remover, Bushing","description":"Remover, Bushing","ubicacion":"F68"},{"code":"JDG977","name":"Aligner, Timing Gear Cover","description":"Aligner, Timing Gear Cover and Rear Seal Housing Oil Pan Rail","ubicacion":"F70"},{"code":"JDG10543","name":"Screw, Forcing","description":"Screw, Forcing","ubicacion":"F72"},{"code":"JDG786","name":"Puller, Front Crankshaft Wear Sleeve","description":"Puller, Front Crankshaft Wear Sleeve","ubicacion":"F8"},{"code":"JDG605","name":"Installer, Valve Seat","description":"Installer, Valve Seat","ubicacion":"F9"},{"code":"JDG981","name":"Set, Installation","description":"Set, Installation","ubicacion":"G2"},{"code":"JT02156A","name":"Kit, Digital Pressure/Temperature Analyzer","description":"Kit, Digital Pressure/Temperature Analyzer","ubicacion":"TECNICOS"},{"code":"JT02160","name":"Transducer, 10,000 PSI","description":"Transducer, 10,000 PSI","ubicacion":"TECNICOS"},{"code":"JT02161A","name":"Transducer, 500 PSI","description":"Transducer, 500 PSI","ubicacion":"TECNICOS"},{"code":"JT02162A","name":"Transducer, 5,000 PSI","description":"Transducer, 5,000 PSI","ubicacion":"TECNICOS"},{"code":"JDG12032","name":"Tool, Rotor Elements","description":"Tool, Rotor Elements","ubicacion":"TECNICOS"},{"code":"JT07122-1A","name":"Front Stand","description":"Front Stand","ubicacion":"ISLA"},{"code":"JDG10393","name":"Stand, Sprayer","description":"Stand, Sprayer","ubicacion":"ISLA"},{"code":"JT07122-2A","name":"Set, Separation Support Stand","description":"Set, Separation Support Stand","ubicacion":"ISLA"},{"code":"KJD10557","name":"Device, Tractor Cab Tilting","description":"Device, Tractor Cab Tilting","ubicacion":"ISLA"},{"code":"JDG2061","name":"Stand, Outrigger","description":"Stand, Outrigger","ubicacion":"ISLA"},{"code":"JDG10357P3","name":"Screw, Forcing","description":"Screw, Forcing","ubicacion":"M1"},{"code":"JDG1393NAA","name":"Retainer","description":"Retainer","ubicacion":"M10"},{"code":"JDG1948","name":"Tool, Assembly","description":"Tool, Assembly","ubicacion":"M11"},{"code":"JDG678","name":"Installer, Valve Stem Seal","description":"Installer, Valve Stem Seal","ubicacion":"M17"},{"code":"JDG576","name":"Shield, Turbo","description":"Shield, Turbo","ubicacion":"M18"},{"code":"JDG1560","name":"Drive Gear Puller Plate","description":"Drive Gear Puller Plate","ubicacion":"M2"},{"code":"JDG11311","name":"Adapter, Crank Hub Puller","description":"Adapter, Crank Hub Puller","ubicacion":"M3"},{"code":"JDG1747","name":"Kit, Alternator Pulley Remover/Installer","description":"Kit, Alternator Pulley Remover/Installer","ubicacion":"M4"},{"code":"JDG975","name":"Tool, Front Timing Gear Cover Centering","description":"Tool, Front Timing Gear Cover Centering","ubicacion":"M6"},{"code":"JDG10564","name":"Installer, Seal","description":"Installer, Seal","ubicacion":"M7"},{"code":"JDG698A","name":"Puller, Rear Seal & Wear Sleeve","description":"Puller, Rear Seal & Wear Sleeve","ubicacion":"M8"},{"code":"JDG10558","name":"Driver, Bearing","description":"Driver, Bearing","ubicacion":"M9"},{"code":"JT07195B","name":"Kit, Electrical Repair","description":"Kit, Electrical Repair","ubicacion":"OFICINA"},{"code":"JDG10854","name":"Kit, Cylinder Leak Down","description":"Kit, Cylinder Leak Down","ubicacion":"OFICINA"},{"code":"D01074AA","name":"Tester, 75 GPM Hydraulic","description":"Tester, 75 GPM In-Line Dual Scale Hydraulic","ubicacion":"SALA MOTORES"},{"code":"JDG969A","name":"Tool, Camshaft Holding","description":"Tool, Camshaft Holding","ubicacion":"Z"},{"code":"JDG754","name":"Adapter, Compression","description":"Adapter, Compression","ubicacion":"Z1"},{"code":"JDG1112","name":"Eyebolt, Lifting","description":"Eyebolt, Lifting","ubicacion":"Z10"},{"code":"JDG1302","name":"Installer, Bearing","description":"Installer, Bearing","ubicacion":"Z11"},{"code":"JDG869","name":"Tool, Adjustment","description":"Tool, Adjustment","ubicacion":"Z12"},{"code":"JDG1945","name":"Tool, Backlash","description":"Tool, Backlash","ubicacion":"Z13"},{"code":"JDG828A","name":"Tool, Adjusting","description":"Tool, Adjusting","ubicacion":"Z14"},{"code":"JDG10865","name":"Driver, Bearing","description":"Driver, Bearing","ubicacion":"Z15"},{"code":"JDG1116","name":"Driver, Bushing","description":"Driver, Bushing","ubicacion":"Z17"},{"code":"JDG10357P4","name":"Installer, Crank Hub and Seal","description":"Installer, Crank Hub and Seal","ubicacion":"Z18"},{"code":"JDG1311","name":"Socket, Locknut","description":"Socket, Locknut","ubicacion":"Z18"},{"code":"JDG11418","name":"Socket, Locknut","description":"Socket, Locknut","ubicacion":"Z19"},{"code":"KJD10416","name":"Installer, Rear PTO Seal","description":"Installer, Rear PTO Seal","ubicacion":"Z2"},{"code":"KJD10295","name":"Handle, Universal","description":"Handle, Universal","ubicacion":"Z20"},{"code":"JDG1391A","name":"Conexión de cojinete","description":"Conexión de cojinete","ubicacion":"Z21"},{"code":"JDG10849","name":"Socket, Spanner","description":"Socket, Spanner","ubicacion":"Z23"},{"code":"JDG11931","name":"Harness, nozzle body test","description":"Harness, nozzle body test","ubicacion":"Z24"},{"code":"JDG10015","name":"Extractor piñón bomba combustible","description":"Extractor de piñón de la bomba de combustible","ubicacion":"Z25"},{"code":"JDGA0022","name":"Remover, Bearing","description":"Remover, Bearing","ubicacion":"Z26"},{"code":"JDG1574A","name":"Bracket, Lifting","description":"Bracket, Lifting","ubicacion":"Z27"},{"code":"JT07129","name":"Kit, manguera de diagnosis","description":"Kit, manguera de diagnosis","ubicacion":"Z4"},{"code":"KJD10317","name":"Shaft, Support Fixture Hollow","description":"Shaft, Support Fixture Hollow","ubicacion":"Z5"},{"code":"JDG1890","name":"Installer, Seal","description":"Installer, Seal","ubicacion":"Z6"},{"code":"JDG11693","name":"Plate, Shaft Lifting","description":"Plate, Shaft Lifting","ubicacion":"Z60"},{"code":"JDG1113","name":"Spacer, Spindle","description":"Spacer, Spindle","ubicacion":"Z7"},{"code":"JDG10878","name":"Installer, Bearing","description":"Installer, Bearing","ubicacion":"Z8"},{"code":"JDG1264","name":"Installer, Speed Ring","description":"Installer, Speed Ring","ubicacion":"Z9"},{"code":"JDG361","name":"Tool, Extraction/Insertion 12-14 gauge","description":"Tool, Extraction/Insertion (12-14 gauge wire) - YELLOW","ubicacion":"CASA CENTRAL"},{"code":"JDG363","name":"Extractor, Gauge 20 gauge RED","description":"Extractor, Gauge (20 gauge wire) RED","ubicacion":"CASA CENTRAL"}];
+
+async function importInitialTools(){
+  const btn=document.getElementById('import-btn'),status=document.getElementById('import-status');
+  if(!confirm(`Importar ${INITIAL_TOOLS.length} herramientas?`))return;
+  btn.disabled=true;btn.textContent='Importando...';
+  const existing=new Set(tools.map(t=>t.code));
+  const toInsert=INITIAL_TOOLS.filter(t=>!existing.has(t.code)).map(t=>({id:uid(),code:t.code,name:t.name,description:t.description,ubicacion:t.ubicacion,status:'ok',home_branch:'S1',current_branch:'S1',is_custom:false}));
+  const skip=INITIAL_TOOLS.length-toInsert.length;
+  let ok=0;
+  for(let i=0;i<toInsert.length;i+=50){const batch=toInsert.slice(i,i+50);const{error}=await db.from('tools').insert(batch);if(!error)ok+=batch.length;}
+  if(ok>0)await addHistory({type:'import',tool_id:'',tool_name:'Sistema',from_val:'',to_val:'ok',branch:curBranch(),user_name:curUser(),note:`Importación: ${ok} herramientas agregadas, ${skip} ya existían`});
+  status.textContent=`✓ ${ok} importadas. ${skip} ya existían.`;
+  btn.disabled=false;btn.textContent='⬆️ Importar 302 herramientas';
+  await loadAll();render();
+}
+
+// ── CONSOLIDADO ───────────────────────────────────────────────────
+function renderConsolidado(){
+  document.getElementById('page-title').textContent='Consolidado general de herramientas';
+  document.getElementById('topbar-actions').innerHTML=`<button class="btn btn-yellow" onclick="exportHistory()">⬇️ Exportar CSV</button>`;
+  const bkeys=Object.keys(BRANCHES);
+  let h=`<div class="search-row"><div class="search-bar">🔍<input type="text" placeholder="Buscar código, nombre, sucursal..." id="cons-search" oninput="filterConsolidado()"/></div>
+  <select id="cons-branch" style="width:180px;font-size:11px" onchange="filterConsolidado()"><option value="">Todas las sucursales</option>${bkeys.map(k=>`<option value="${k}">${BRANCHES[k]}</option>`).join('')}</select>
+  <select id="cons-status" style="width:160px;font-size:11px" onchange="filterConsolidado()"><option value="">Todos los estados</option><option value="ok">Disponible</option><option value="reserved">Reservada</option><option value="loan">En préstamo</option><option value="out">Fuera de servicio</option></select>
+  </div>`;
+  h+=`<div id="cons-list"></div>`;
+  document.getElementById('main-content').innerHTML=h;
+  filterConsolidado();
+}
+
+function filterConsolidado(){
+  const q=(document.getElementById('cons-search')||{value:''}).value.toLowerCase();
+  const branch=(document.getElementById('cons-branch')||{value:''}).value;
+  const statusF=(document.getElementById('cons-status')||{value:''}).value;
+  const today=new Date().toISOString().split('T')[0];
+
+  const rows=tools.map(t=>{
+    const loan=getActiveLoan(t.id);
+    const activeRes=reservations.filter(r=>r.tool_id===t.id&&r.status==='approved'&&r.date_from<=today&&r.date_to>=today);
+    const nextRes=reservations.filter(r=>r.tool_id===t.id&&r.status==='approved'&&r.date_from>today).sort((a,b)=>a.date_from.localeCompare(b.date_from))[0];
+    let statusKey='ok',statusLabel='Disponible',statusColor='#7dc867';
+    if(t.status==='out'){statusKey='out';statusLabel='Fuera de servicio';statusColor='#f09595';}
+    else if(loan){statusKey='loan';statusLabel=`En préstamo → ${branchName(loan.to_branch).split('–')[0].trim()}`;statusColor='#85B7EB';}
+    else if(activeRes.length>0){statusKey='reserved';statusLabel=`Reservada – ${activeRes[0].user_name}`;statusColor='#FFDE00';}
+    const ubicActual=loan?branchName(loan.to_branch):branchName(t.current_branch);
+    return{t,loan,activeRes,nextRes,statusKey,statusLabel,statusColor,ubicActual};
+  }).filter(row=>{
+    const mQ=!q||row.t.name.toLowerCase().includes(q)||row.t.code.toLowerCase().includes(q)||branchName(row.t.home_branch).toLowerCase().includes(q);
+    const mB=!branch||(row.loan?row.loan.to_branch===branch:row.t.current_branch===branch)||row.t.home_branch===branch;
+    const mS=!statusF||row.statusKey===statusF;
+    return mQ&&mB&&mS;
+  });
+
+  let h=`<div class="card"><div style="font-size:11px;color:var(--jd-muted);margin-bottom:10px">${rows.length} herramientas</div><div style="overflow-x:auto"><table><thead><tr>
+    <th style="width:100px">Código</th><th>Nombre</th><th style="width:60px">Estante</th>
+    <th style="width:120px">Sucursal dueña</th><th style="width:130px">Ubicación actual</th>
+    <th style="width:120px">Estado</th><th>Próxima reserva</th></tr></thead><tbody>`;
+  rows.forEach(({t,loan,nextRes,statusLabel,statusColor,ubicActual})=>{
+    h+=`<tr>
+      <td style="font-family:monospace;font-size:11px;color:var(--jd-yellow)">${t.code}</td>
+      <td style="font-size:12px;color:#fff;font-weight:700;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${t.name}${t.is_custom?` <span style="background:rgba(255,222,0,0.15);color:var(--jd-yellow);font-size:9px;padding:1px 4px;border-radius:2px">TALLER</span>`:''}</td>
+      <td style="font-size:11px;color:var(--jd-muted)">${t.ubicacion||'-'}</td>
+      <td style="font-size:11px">${branchName(t.home_branch).split('–')[0].trim()}</td>
+      <td style="font-size:11px;color:${loan?'#85B7EB':'#D0D0C8'}">${ubicActual.split('–')[0].trim()}</td>
+      <td><span style="font-size:10px;font-weight:900;color:${statusColor}">${statusLabel}</span></td>
+      <td style="font-size:11px;color:var(--jd-muted)">${nextRes?`${fmtDate(nextRes.date_from)} – ${nextRes.user_name} (${branchName(nextRes.branch).split('–')[0].trim()})`:'-'}</td>
+    </tr>`;
+  });
+  h+=`</tbody></table></div></div>`;
+  const el=document.getElementById('cons-list');if(el)el.innerHTML=h;
+}
+
+// ── URGENT REQUESTS ───────────────────────────────────────────────
+function renderUrgent(){
+  document.getElementById('page-title').textContent='Pedidos urgentes / excepcionales';
+  document.getElementById('topbar-actions').innerHTML=`<button class="btn btn-danger" onclick="openNewUrgent()">🚨 Nuevo pedido urgente</button>`;
+  const pending=(urgentRequests||[]).filter(u=>u.status==='pending');
+  const resolved=(urgentRequests||[]).filter(u=>u.status!=='pending');
+  let h=`<div class="alert alert-danger">🚨 Los pedidos urgentes se usan cuando una herramienta ya está reservada pero existe una necesidad crítica. Quedan pendientes hasta que un responsable los aprueba o rechaza.</div>`;
+  if(pending.length){
+    h+=`<div class="section-divider" style="border-top:none;padding-top:0">⏳ PENDIENTES DE EVALUACIÓN (${pending.length})</div>`;
+    h+=`<div class="card">`;
+    pending.forEach(u=>{
+      const t=getTool(u.tool_id);
+      const activeRes=reservations.filter(r=>r.tool_id===u.tool_id&&r.status==='approved'&&r.date_from<=u.date_to&&r.date_to>=u.date_from);
+      h+=`<div style="border:1.5px solid #E24B4A;border-radius:4px;padding:14px;margin-bottom:12px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <div><div style="font-size:13px;font-weight:900;color:#fff">🚨 ${u.tool_name} <span style="font-family:monospace;font-size:11px;color:var(--jd-yellow)">(${u.tool_code||''})</span></div>
+          <div style="font-size:11px;color:var(--jd-muted);margin-top:2px">Solicitado por <strong style="color:#fff">${u.user_name}</strong> – ${branchName(u.branch)} · ${fmtDT(u.created_at)}</div></div>
+          <span style="background:rgba(226,75,74,0.2);color:#f09595;border:1px solid #E24B4A;padding:2px 8px;border-radius:3px;font-size:10px;font-weight:900">URGENTE</span>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px">
+          <div style="background:#2a2a2a;padding:8px;border-radius:3px"><div style="font-size:9px;color:var(--jd-muted);margin-bottom:3px">FECHAS SOLICITADAS</div><div style="font-size:12px;color:#fff;font-weight:700">${fmtDate(u.date_from)} – ${fmtDate(u.date_to)}</div></div>
+          <div style="background:#2a2a2a;padding:8px;border-radius:3px"><div style="font-size:9px;color:var(--jd-muted);margin-bottom:3px">TURNO</div><div style="font-size:12px;color:#fff">${u.shift||'-'}</div></div>
+          <div style="background:#2a2a2a;padding:8px;border-radius:3px"><div style="font-size:9px;color:var(--jd-muted);margin-bottom:3px">NRO. COR</div><div style="font-size:12px;color:var(--jd-yellow);font-weight:700">${u.cor||'No especificado'}</div></div>
+        </div>
+        <div style="background:#2a2a2a;padding:8px;border-radius:3px;margin-bottom:10px"><div style="font-size:9px;color:var(--jd-muted);margin-bottom:3px">JUSTIFICACIÓN / MOTIVO</div><div style="font-size:12px;color:#D0D0C8">${u.purpose||'-'}</div></div>
+        ${activeRes.length?`<div class="alert alert-warning" style="margin-bottom:10px">⚠ Conflicto con reserva existente: <strong>${activeRes[0].user_name}</strong> – ${branchName(activeRes[0].branch)} · ${fmtDate(activeRes[0].date_from)}–${fmtDate(activeRes[0].date_to)}</div>`:''}
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-primary btn-sm" onclick="resolveUrgent('${u.id}','approved')">✓ Aprobar pedido urgente</button>
+          <button class="btn btn-danger btn-sm" onclick="resolveUrgent('${u.id}','rejected')">✕ Rechazar</button>
+        </div>
+      </div>`;
+    });
+    h+=`</div>`;
+  } else {
+    h+=`<div class="card"><div class="no-data">Sin pedidos urgentes pendientes</div></div>`;
+  }
+  if(resolved.length){
+    h+=`<div class="section-divider">RESUELTOS (${resolved.length})</div><div class="card"><table><thead><tr><th>Herramienta</th><th>Solicitante</th><th>Sucursal</th><th>COR</th><th>Fechas</th><th>Estado</th><th>Resuelto por</th></tr></thead><tbody>`;
+    resolved.slice(0,20).forEach(u=>{h+=`<tr><td style="font-weight:700;color:#fff;font-size:11px">${u.tool_name}</td><td style="font-size:11px">${u.user_name}</td><td style="font-size:11px">${branchName(u.branch)}</td><td style="font-size:11px;color:var(--jd-yellow)">${u.cor||'-'}</td><td style="font-size:11px">${fmtDate(u.date_from)}–${fmtDate(u.date_to)}</td><td>${u.status==='approved'?'<span class="badge badge-approved">Aprobado</span>':'<span class="badge badge-out">Rechazado</span>'}</td><td style="font-size:11px">${u.resolved_by||'-'}</td></tr>`;});
+    h+=`</tbody></table></div>`;
+  }
+  document.getElementById('main-content').innerHTML=h;
+}
+
+function openNewUrgent(){
+  const b=`<div class="alert alert-danger">🚨 Solo para necesidades críticas. Quedará pendiente de aprobación por un responsable.</div>
+  <div class="form-group"><div class="form-label">Herramienta *</div>
+    <select id="u-tool" style="font-size:11px" onchange="checkUrgentConflicts()">${tools.filter(t=>t.status==='ok').map(t=>`<option value="${t.id}">${t.code} – ${t.name}</option>`).join('')}</select>
+  </div>
+  <div id="u-conflict-alert"></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+    <div class="form-group"><div class="form-label">Fecha desde *</div><input type="date" id="u-from" value="${fmtD(1)}" onchange="checkUrgentConflicts()"/></div>
+    <div class="form-group"><div class="form-label">Fecha hasta *</div><input type="date" id="u-to" value="${fmtD(1)}" onchange="checkUrgentConflicts()"/></div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+    <div class="form-group"><div class="form-label">Turno</div><select id="u-shift"><option>Mañana</option><option>Tarde</option><option>Noche</option><option>Día completo</option></select></div>
+    <div class="form-group"><div class="form-label">Sucursal solicitante</div><select id="u-branch">${Object.keys(BRANCHES).map(k=>`<option value="${k}" ${k===curBranch()?'selected':''}>${BRANCHES[k]}</option>`).join('')}</select></div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+    <div class="form-group"><div class="form-label">Técnico solicitante *</div><input id="u-user" value="${curUser()}"/></div>
+    <div class="form-group"><div class="form-label">Cliente / Reparación *</div><input id="u-client" placeholder="Nombre del cliente"/></div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+    <div class="form-group"><div class="form-label">Nro. de COR (opcional)</div><input id="u-cor" placeholder="Ej: COR-2024-001"/></div>
+    <div class="form-group"><div class="form-label">Trabajo a realizar</div><input id="u-purpose-short" placeholder="Resumen breve"/></div>
+  </div>
+  <div class="form-group"><div class="form-label">Justificación de la urgencia *</div><textarea id="u-purpose" placeholder="Por qué no puede esperar, impacto en productividad..." style="min-height:80px"></textarea></div>`;
+  openModal('🚨 Pedido urgente / excepcional',b,`<button class="btn" onclick="closeModal()">Cancelar</button><button class="btn btn-danger" onclick="submitUrgent()">🚨 Enviar pedido urgente</button>`);
+  setTimeout(checkUrgentConflicts,100);
+}
+
+function checkUrgentConflicts(){
+  const toolId=(document.getElementById('u-tool')||{value:''}).value;
+  const from=(document.getElementById('u-from')||{value:''}).value;
+  const to=(document.getElementById('u-to')||{value:''}).value;
+  const alertEl=document.getElementById('u-conflict-alert');
+  if(!alertEl||!toolId||!from||!to)return;
+  const activeLoan=getActiveLoan(toolId);
+  const conflicts=reservations.filter(r=>r.tool_id===toolId&&r.status==='approved'&&r.date_from<=to&&r.date_to>=from);
+  let html='';
+  if(activeLoan){html+=`<div class="alert alert-warning" style="margin-bottom:10px">⚠ <strong>En préstamo activo</strong> en ${branchName(activeLoan.to_branch)} hasta ${fmtDate(activeLoan.date_to)} (${activeLoan.user_name}). Tu pedido quedará pendiente.</div>`;}
+  if(conflicts.length>0){
+    html+=`<div class="alert alert-warning" style="margin-bottom:10px">⚠ <strong>${conflicts.length} reserva${conflicts.length>1?'s':''} aprobada${conflicts.length>1?'s':''} en esas fechas:</strong>`;
+    conflicts.forEach(c=>{html+=`<span style="font-size:11px;display:block;margin-top:4px">→ ${branchName(c.branch)} · ${c.user_name} · ${fmtDate(c.date_from)}–${fmtDate(c.date_to)}</span>`;});
+    html+=`<span style="font-size:11px;display:block;margin-top:6px;color:#FFDE00">El responsable verá este conflicto al evaluar tu pedido.</span></div>`;
+  }
+  if(!activeLoan&&conflicts.length===0){html=`<div class="alert alert-info" style="margin-bottom:10px">✓ Sin conflictos detectados para esas fechas.</div>`;}
+  alertEl.innerHTML=html;
+}
+
+
+async function submitUrgent(){
+  const toolId=document.getElementById('u-tool').value;
+  const t=getTool(toolId);
+  const from=document.getElementById('u-from').value,to=document.getElementById('u-to').value;
+  const user=document.getElementById('u-user').value.trim();
+  const client=(document.getElementById('u-client')||{value:''}).value.trim();
+  const branch=document.getElementById('u-branch').value;
+  const shift=document.getElementById('u-shift').value;
+  const cor=document.getElementById('u-cor').value.trim();
+  const purposeShort=(document.getElementById('u-purpose-short')||{value:''}).value.trim();
+  const purpose=document.getElementById('u-purpose').value.trim();
+  const fullPurpose=[cor?'COR:'+cor:'',purposeShort,purpose].filter(Boolean).join(' | ');
+  if(!from||!to||!user||!client||!purpose){alert('Completá todos los campos obligatorios incluyendo cliente y justificación');return;}
+  const u={id:uid(),tool_id:toolId,tool_name:t.name,tool_code:t.code,branch,user_name:user,client_name:client,date_from:from,date_to:to,shift,cor,purpose:fullPurpose,status:'pending'};
+  await db.from('urgent_requests').insert(u);
+  await addHistory({type:'urgent',tool_id:toolId,tool_name:t.name,from_val:'',to_val:'pending',branch,user_name:user,note:`Pedido urgente${cor?' COR:'+cor:''} – ${purpose.substring(0,60)}`});
+  closeModal();await loadAll();showPage('urgent');
+}
+
+async function resolveUrgent(id,resolution){
+  const u=(urgentRequests||[]).find(x=>x.id===id);if(!u)return;
+  const resolvedBy=curUser();
+  // PIN verification for approval
+  if(resolution==='approved'){
+    const pins=JSON.parse(localStorage.getItem('conci_pins')||'{}');
+    const myPin=pins[curBranch()];
+    if(myPin){
+      const entered=prompt(`Ingresá el PIN de aprobación para ${branchName(curBranch())}:`);
+      if(entered===null)return;
+      if(entered!==myPin){alert('PIN incorrecto.');return;}
+    }
+  }
+  await db.from('urgent_requests').update({status:resolution,resolved_by:resolvedBy,resolved_at:new Date().toISOString()}).eq('id',id);
+  if(resolution==='approved'){
+    // Create reservation bypassing date restriction
+    const r={id:uid(),tool_id:u.tool_id,tool_name:u.tool_name,tool_code:u.tool_code,branch:u.branch,user_name:u.user_name,date_from:u.date_from,date_to:u.date_to,shift:u.shift,purpose:`[URGENTE] COR:${u.cor||'-'} – ${u.purpose}`,status:'approved'};
+    await db.from('reservations').insert(r);
+    const t=getTool(u.tool_id);
+    if(t&&u.branch!==t.current_branch){
+      const loan={id:uid(),tool_id:u.tool_id,tool_name:u.tool_name,tool_code:u.tool_code,from_branch:t.current_branch,to_branch:u.branch,date_from:u.date_from,date_to:u.date_to,user_name:u.user_name,status:'active',purpose:`URGENTE – ${u.purpose}`};
+      await db.from('loans').insert(loan);
+      await db.from('tools').update({current_branch:u.branch}).eq('id',u.tool_id);
+    }
+  }
+  await addHistory({type:'urgent',tool_id:u.tool_id,tool_name:u.tool_name,from_val:'pending',to_val:resolution,branch:u.branch,user_name:resolvedBy,note:`Pedido urgente ${resolution==='approved'?'APROBADO':'RECHAZADO'}`});
+  await loadAll();render();
+}
+
+// ── BOOT ──────────────────────────────────────────────────────────
+// ── KPI DASHBOARD ────────────────────────────────────────────────
+function renderKPI(){
+  document.getElementById('page-title').textContent='Dashboard de KPIs';
+  document.getElementById('topbar-actions').innerHTML='';
+  const today=new Date();
+  const firstDayMonth=new Date(today.getFullYear(),today.getMonth(),1).toISOString().split('T')[0];
+  const todayStr=today.toISOString().split('T')[0];
+  let h=`<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:20px;background:#222;padding:12px 16px;border-radius:4px;border:1px solid #333">
+    <span style="font-size:10px;color:var(--jd-yellow);font-weight:900;letter-spacing:1px">FILTRAR POR PERÍODO:</span>
+    <button class="filter-btn active" onclick="setKPIRange(this,'all')" data-range="all">Todo</button>
+    <button class="filter-btn" onclick="setKPIRange(this,'30')" data-range="30">Últimos 30 días</button>
+    <button class="filter-btn" onclick="setKPIRange(this,'90')" data-range="90">Últimos 90 días</button>
+    <button class="filter-btn" onclick="setKPIRange(this,'month')" data-range="month">Este mes</button>
+    <button class="filter-btn" onclick="setKPIRange(this,'year')" data-range="year">Este año</button>
+    <span style="font-size:10px;color:var(--jd-muted);margin-left:8px">O rango personalizado:</span>
+    <input type="date" id="kpi-from" value="${firstDayMonth}" style="width:140px;font-size:11px;padding:4px 8px"/>
+    <input type="date" id="kpi-to" value="${todayStr}" style="width:140px;font-size:11px;padding:4px 8px"/>
+    <button class="btn btn-primary btn-sm" onclick="applyKPIFilter()">Aplicar</button>
+  </div>
+  <div id="kpi-content"></div>`;
+  document.getElementById('main-content').innerHTML=h;
+  renderKPIContent('all',null,null);
+}
+
+function setKPIRange(el,range){
+  document.querySelectorAll('[data-range]').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  const today=new Date();
+  let from=null,to=today.toISOString().split('T')[0];
+  if(range==='30'){const d=new Date();d.setDate(d.getDate()-30);from=d.toISOString().split('T')[0];}
+  else if(range==='90'){const d=new Date();d.setDate(d.getDate()-90);from=d.toISOString().split('T')[0];}
+  else if(range==='month'){from=new Date(today.getFullYear(),today.getMonth(),1).toISOString().split('T')[0];}
+  else if(range==='year'){from=new Date(today.getFullYear(),0,1).toISOString().split('T')[0];}
+  if(from){document.getElementById('kpi-from').value=from;}
+  document.getElementById('kpi-to').value=to;
+  renderKPIContent(range,from,to);
+}
+
+function applyKPIFilter(){
+  const from=document.getElementById('kpi-from').value;
+  const to=document.getElementById('kpi-to').value;
+  if(!from||!to){alert('Seleccioná ambas fechas');return;}
+  if(from>to){alert('La fecha de inicio debe ser anterior a la fecha fin');return;}
+  document.querySelectorAll('[data-range]').forEach(b=>b.classList.remove('active'));
+  renderKPIContent('custom',from,to);
+}
+
+function renderKPIContent(range,fromDate,toDate){
+  // Filter data by date range
+  const filterByDate=(item,dateField)=>{
+    if(range==='all')return true;
+    const d=item[dateField]||(item.created_at?item.created_at.split('T')[0]:'');
+    if(!d)return true;
+    if(fromDate&&d<fromDate)return false;
+    if(toDate&&d>toDate)return false;
+    return true;
+  };
+  const filteredUrgent=(urgentRequests||[]).filter(u=>filterByDate(u,'date_from'));
+  const filteredReservations=reservations.filter(r=>filterByDate(r,'date_from'));
+  const filteredLoans=loans.filter(l=>filterByDate(l,'date_from'));
+  const today=new Date().toISOString().split('T')[0];
+  const rangeLabel=range==='all'?'Todo el período':range==='custom'?`${fmtDate(fromDate)} – ${fmtDate(toDate)}`:`Últimos ${range==='month'?'mes':range==='year'?'año':range+' días'}`;
+
+  // Urgencias por herramienta
+  const urgByTool={};
+  filteredUrgent.forEach(u=>{
+    if(!urgByTool[u.tool_name])urgByTool[u.tool_name]={name:u.tool_name,code:u.tool_code||'',total:0,approved:0,rejected:0,pending:0};
+    urgByTool[u.tool_name].total++;
+    if(u.status==='approved')urgByTool[u.tool_name].approved++;
+    else if(u.status==='rejected')urgByTool[u.tool_name].rejected++;
+    else urgByTool[u.tool_name].pending++;
+  });
+  const urgRanking=Object.values(urgByTool).sort((a,b)=>b.total-a.total).slice(0,10);
+  // Urgencias por sucursal
+  const urgByBranch={};
+  filteredUrgent.forEach(u=>{
+    const bn=branchName(u.branch);
+    if(!urgByBranch[bn])urgByBranch[bn]={name:bn,total:0,approved:0,rejected:0};
+    urgByBranch[bn].total++;
+    if(u.status==='approved')urgByBranch[bn].approved++;
+    else if(u.status==='rejected')urgByBranch[bn].rejected++;
+  });
+  const urgBranchRanking=Object.values(urgByBranch).sort((a,b)=>b.total-a.total);
+  // Herramientas mas reservadas
+  const resByTool={};
+  filteredReservations.forEach(r=>{
+    if(!resByTool[r.tool_name])resByTool[r.tool_name]={name:r.tool_name,code:r.tool_code||'',total:0};
+    resByTool[r.tool_name].total++;
+  });
+  const resRanking=Object.values(resByTool).sort((a,b)=>b.total-a.total).slice(0,10);
+  // Prestamos en termino vs atrasados
+  const enTermino=filteredLoans.filter(l=>{
+    if(l.status==='returned')return l.returned_at&&l.returned_at.split('T')[0]<=l.date_to;
+    return l.date_to>=today;
+  }).length;
+  const atrasados=filteredLoans.filter(l=>{
+    if(l.status==='returned')return l.returned_at&&l.returned_at.split('T')[0]>l.date_to;
+    return l.status==='active'&&l.date_to<today;
+  }).length;
+  const totalLoans=filteredLoans.length;
+  const retLoans=filteredLoans.filter(l=>l.status==='returned'&&l.returned_at&&l.date_from);
+  const avgDays=retLoans.length>0?Math.round(retLoans.reduce((acc,l)=>{return acc+(new Date(l.returned_at)-new Date(l.date_from))/(1000*60*60*24);},0)/retLoans.length):0;
+  // Reservas por sucursal
+  const resByBranch={};
+  filteredReservations.forEach(r=>{const bn=branchName(r.branch);if(!resByBranch[bn])resByBranch[bn]=0;resByBranch[bn]++;});
+  const branchRanking=Object.entries(resByBranch).sort((a,b)=>b[1]-a[1]);
+  const maxUrg=urgRanking.length>0?urgRanking[0].total:1;
+  const maxRes=resRanking.length>0?resRanking[0].total:1;
+  const maxBranch=branchRanking.length>0?branchRanking[0][1]:1;
+  const maxUB=urgBranchRanking.length>0?urgBranchRanking[0].total:1;
+
+  let kh=`<div style="font-size:11px;color:var(--jd-muted);margin-bottom:14px">📅 Período: <strong style="color:var(--jd-yellow)">${rangeLabel}</strong> · ${filteredReservations.length} reservas · ${filteredLoans.length} préstamos · ${filteredUrgent.length} urgencias</div>`;
+  kh+=`<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:20px">
+    <div class="metric-card"><div class="metric-label">TOTAL URGENCIAS</div><div class="metric-value red">${filteredUrgent.length}</div></div>
+    <div class="metric-card yellow"><div class="metric-label">URGENCIAS PENDIENTES</div><div class="metric-value yellow">${filteredUrgent.filter(u=>u.status==='pending').length}</div></div>
+    <div class="metric-card"><div class="metric-label">URGENCIAS APROBADAS</div><div class="metric-value green">${filteredUrgent.filter(u=>u.status==='approved').length}</div></div>
+    <div class="metric-card"><div class="metric-label">PRÉSTAMOS EN TÉRMINO</div><div class="metric-value green">${enTermino}</div></div>
+    <div class="metric-card red"><div class="metric-label">PRÉSTAMOS ATRASADOS</div><div class="metric-value red">${atrasados}</div></div>
+    <div class="metric-card"><div class="metric-label">DÍAS PROM. PRÉSTAMO</div><div class="metric-value">${avgDays}</div></div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+  <div class="card"><div class="card-header"><span class="card-title">🚨 Urgencias por herramienta</span></div>
+    ${urgRanking.length===0?'<div class="no-data">Sin urgencias en este período</div>':urgRanking.map(u=>`
+    <div style="margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between;margin-bottom:3px">
+        <div style="font-size:11px;color:#fff;font-weight:700;max-width:190px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${u.name}</div>
+        <div style="font-size:11px;color:var(--jd-muted)">${u.total}</div>
+      </div>
+      <div style="font-size:10px;color:var(--jd-muted);margin-bottom:3px;font-family:monospace">${u.code}</div>
+      <div style="background:#2a2a2a;border-radius:3px;height:8px;overflow:hidden"><div style="height:100%;background:#E24B4A;width:${Math.round(u.total/maxUrg*100)}%;border-radius:3px"></div></div>
+      <div style="display:flex;gap:8px;margin-top:3px">
+        <span style="font-size:10px;color:#7dc867">✓ ${u.approved}</span>
+        <span style="font-size:10px;color:#f09595">✕ ${u.rejected}</span>
+        ${u.pending>0?`<span style="font-size:10px;color:#FFDE00">⏳ ${u.pending}</span>`:''}
+      </div>
+    </div>`).join('')}
+  </div>
+  <div class="card"><div class="card-header"><span class="card-title">🏢 Urgencias por sucursal</span></div>
+    ${urgBranchRanking.length===0?'<div class="no-data">Sin urgencias en este período</div>':urgBranchRanking.map(b=>`
+    <div style="margin-bottom:14px">
+      <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+        <div style="font-size:12px;color:#fff;font-weight:700">${b.name}</div>
+        <div style="font-size:13px;font-weight:900;color:#f09595">${b.total}</div>
+      </div>
+      <div style="background:#2a2a2a;border-radius:3px;height:10px;overflow:hidden"><div style="height:100%;background:#E24B4A;width:${Math.round(b.total/maxUB*100)}%;border-radius:3px"></div></div>
+      <div style="display:flex;gap:8px;margin-top:3px"><span style="font-size:10px;color:#7dc867">✓ ${b.approved}</span><span style="font-size:10px;color:#f09595">✕ ${b.rejected}</span></div>
+    </div>`).join('')}
+  </div>
+  <div class="card"><div class="card-header"><span class="card-title">🔧 Herramientas más solicitadas</span></div>
+    ${resRanking.length===0?'<div class="no-data">Sin reservas en este período</div>':resRanking.map((r,i)=>`
+    <div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid #2e2e2e">
+      <div style="font-size:15px;font-weight:900;color:${i===0?'var(--jd-yellow)':i===1?'#A0A098':i===2?'#CD7F32':'#444'};min-width:22px;text-align:center">${i+1}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:12px;color:#fff;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.name}</div>
+        <div style="background:#2a2a2a;border-radius:2px;height:5px;margin-top:4px;overflow:hidden"><div style="height:100%;background:var(--jd-green);width:${Math.round(r.total/maxRes*100)}%"></div></div>
+      </div>
+      <div style="text-align:right"><div style="font-size:14px;font-weight:900;color:#fff">${r.total}</div><div style="font-size:10px;color:var(--jd-muted)">reservas</div></div>
+    </div>`).join('')}
+  </div>
+  <div class="card"><div class="card-header"><span class="card-title">📊 Reservas por sucursal</span></div>
+    ${branchRanking.length===0?'<div class="no-data">Sin reservas en este período</div>':branchRanking.map(([branch,count])=>`
+    <div style="margin-bottom:14px">
+      <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+        <div style="font-size:12px;color:#fff;font-weight:700">${branch}</div>
+        <div style="font-size:14px;font-weight:900;color:var(--jd-yellow)">${count}</div>
+      </div>
+      <div style="background:#2a2a2a;border-radius:3px;height:10px;overflow:hidden"><div style="height:100%;background:var(--jd-green);width:${Math.round(count/maxBranch*100)}%;border-radius:3px"></div></div>
+    </div>`).join('')}
+  </div>
+  </div>
+  <div class="card"><div class="card-header"><span class="card-title">⏱ Cumplimiento de devoluciones</span></div>
+    ${totalLoans===0?'<div class="no-data">Sin préstamos en este período</div>':`
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;align-items:center;padding:10px 0">
+      <div style="text-align:center"><div style="font-size:52px;font-weight:900;color:#7dc867">${totalLoans>0?Math.round(enTermino/totalLoans*100):0}%</div><div style="font-size:12px;color:var(--jd-muted);margin-top:4px">En término</div><div style="font-size:13px;color:#7dc867;font-weight:700">${enTermino} préstamos</div></div>
+      <div>
+        <div style="margin-bottom:8px"><div style="font-size:10px;color:#7dc867;margin-bottom:4px;font-weight:700">EN TÉRMINO</div><div style="background:#2a2a2a;border-radius:4px;height:16px;overflow:hidden"><div style="height:100%;background:#7dc867;width:${totalLoans>0?Math.round(enTermino/totalLoans*100):0}%;border-radius:4px"></div></div></div>
+        <div><div style="font-size:10px;color:#f09595;margin-bottom:4px;font-weight:700">ATRASADOS</div><div style="background:#2a2a2a;border-radius:4px;height:16px;overflow:hidden"><div style="height:100%;background:#E24B4A;width:${totalLoans>0?Math.round(atrasados/totalLoans*100):0}%;border-radius:4px"></div></div></div>
+      </div>
+      <div style="text-align:center"><div style="font-size:52px;font-weight:900;color:#f09595">${totalLoans>0?Math.round(atrasados/totalLoans*100):0}%</div><div style="font-size:12px;color:var(--jd-muted);margin-top:4px">Atrasados</div><div style="font-size:13px;color:#f09595;font-weight:700">${atrasados} préstamos</div></div>
+    </div>`}
+  </div>`;
+  const el=document.getElementById('kpi-content');
+  if(el)el.innerHTML=kh;
+}
+
+// ── AUTH ──────────────────────────────────────────────────────────
+let currentUser=null;
+
+async function boot(){
+  const {data:{session}}=await db.auth.getSession();
+  if(session){currentUser=session.user;await initApp();}
+  else{showLoginScreen();}
+  db.auth.onAuthStateChange(async(event,session)=>{
+    if(event==='SIGNED_IN'&&session){currentUser=session.user;await initApp();}
+    else if(event==='SIGNED_OUT'){currentUser=null;showLoginScreen();}
+  });
+}
+
+function showLoginScreen(){
+  document.querySelector('.app').style.display='none';
+  let loginDiv=document.getElementById('login-screen');
+  if(!loginDiv){loginDiv=document.createElement('div');loginDiv.id='login-screen';document.body.appendChild(loginDiv);}
+  loginDiv.style.display='flex';
+  loginDiv.innerHTML=`
+  <div style="min-height:100vh;width:100%;display:flex;align-items:center;justify-content:center;background:#1A1A1A;font-family:'Arial Black',Arial,sans-serif">
+    <div style="background:#222;border:2px solid var(--jd-yellow);border-radius:6px;padding:36px 40px;width:100%;max-width:380px">
+      <div style="text-align:center;margin-bottom:28px">
+        <div style="font-size:32px;font-weight:900;color:#fff;letter-spacing:4px">CONCI</div>
+        <div style="display:inline-block;background:var(--jd-green);color:var(--jd-yellow);font-size:9px;font-weight:900;padding:2px 8px;border-radius:3px;letter-spacing:1px;margin-top:6px">CONCESIONARIO OFICIAL JOHN DEERE</div>
+        <div style="font-size:11px;color:var(--jd-muted);margin-top:8px">Herramientas Especiales · Sistema de Reservas</div>
+      </div>
+      <div id="login-error" style="display:none;background:rgba(163,45,45,0.2);color:#f09595;border:1px solid #a32d2d;border-radius:3px;padding:8px 12px;font-size:12px;margin-bottom:14px"></div>
+      <div style="margin-bottom:12px">
+        <div style="font-size:10px;color:var(--jd-yellow);font-weight:900;letter-spacing:1px;margin-bottom:5px">EMAIL</div>
+        <input id="login-email" type="email" placeholder="tu@email.com" style="width:100%;padding:10px;border:1.5px solid #444;border-radius:3px;font-size:13px;background:#2a2a2a;color:#F5F5F0"/>
+      </div>
+      <div style="margin-bottom:20px">
+        <div style="font-size:10px;color:var(--jd-yellow);font-weight:900;letter-spacing:1px;margin-bottom:5px">CONTRASEÑA</div>
+        <input id="login-password" type="password" placeholder="••••••••" style="width:100%;padding:10px;border:1.5px solid #444;border-radius:3px;font-size:13px;background:#2a2a2a;color:#F5F5F0" onkeydown="if(event.key==='Enter')doLogin()"/>
+      </div>
+      <button onclick="doLogin()" id="login-btn" style="width:100%;padding:12px;background:var(--jd-green);color:var(--jd-yellow);border:none;border-radius:3px;font-size:14px;font-weight:900;cursor:pointer;letter-spacing:1px">INGRESAR</button>
+      <div style="text-align:center;margin-top:14px">
+        <span style="font-size:11px;color:var(--jd-muted);cursor:pointer;text-decoration:underline" onclick="showRegisterScreen()">¿Primera vez? Crear cuenta</span>
+      </div>
+    </div>
+  </div>`;
+}
+
+function showRegisterScreen(){
+  const loginDiv=document.getElementById('login-screen');
+  loginDiv.innerHTML=`
+  <div style="min-height:100vh;width:100%;display:flex;align-items:center;justify-content:center;background:#1A1A1A;font-family:'Arial Black',Arial,sans-serif">
+    <div style="background:#222;border:2px solid var(--jd-green);border-radius:6px;padding:36px 40px;width:100%;max-width:380px">
+      <div style="text-align:center;margin-bottom:24px">
+        <div style="font-size:28px;font-weight:900;color:#fff;letter-spacing:3px">CONCI</div>
+        <div style="font-size:11px;color:var(--jd-muted);margin-top:6px">Crear cuenta nueva</div>
+      </div>
+      <div id="reg-error" style="display:none;background:rgba(163,45,45,0.2);color:#f09595;border:1px solid #a32d2d;border-radius:3px;padding:8px 12px;font-size:12px;margin-bottom:14px"></div>
+      <div style="margin-bottom:12px">
+        <div style="font-size:10px;color:var(--jd-yellow);font-weight:900;letter-spacing:1px;margin-bottom:5px">NOMBRE COMPLETO *</div>
+        <input id="reg-name" type="text" placeholder="Nombre y apellido" style="width:100%;padding:10px;border:1.5px solid #444;border-radius:3px;font-size:13px;background:#2a2a2a;color:#F5F5F0"/>
+      </div>
+      <div style="margin-bottom:12px">
+        <div style="font-size:10px;color:var(--jd-yellow);font-weight:900;letter-spacing:1px;margin-bottom:5px">EMAIL *</div>
+        <input id="reg-email" type="email" placeholder="tu@email.com" style="width:100%;padding:10px;border:1.5px solid #444;border-radius:3px;font-size:13px;background:#2a2a2a;color:#F5F5F0"/>
+      </div>
+      <div style="margin-bottom:12px">
+        <div style="font-size:10px;color:var(--jd-yellow);font-weight:900;letter-spacing:1px;margin-bottom:5px">SUCURSAL *</div>
+        <select id="reg-branch" style="width:100%;padding:10px;border:1.5px solid #444;border-radius:3px;font-size:12px;background:#2a2a2a;color:#F5F5F0">
+          <option value="S1">Casa Central – Córdoba</option>
+          <option value="S2">Sucursal 2</option>
+          <option value="S3">Sucursal 3</option>
+          <option value="S4">Sucursal 4</option>
+          <option value="S5">Sucursal 5</option>
+        </select>
+      </div>
+      <div style="margin-bottom:20px">
+        <div style="font-size:10px;color:var(--jd-yellow);font-weight:900;letter-spacing:1px;margin-bottom:5px">CONTRASEÑA *</div>
+        <input id="reg-password" type="password" placeholder="Mínimo 6 caracteres" style="width:100%;padding:10px;border:1.5px solid #444;border-radius:3px;font-size:13px;background:#2a2a2a;color:#F5F5F0"/>
+      </div>
+      <button onclick="doRegister()" style="width:100%;padding:12px;background:var(--jd-green);color:var(--jd-yellow);border:none;border-radius:3px;font-size:14px;font-weight:900;cursor:pointer;letter-spacing:1px">CREAR CUENTA</button>
+      <div style="text-align:center;margin-top:14px">
+        <span style="font-size:11px;color:var(--jd-muted);cursor:pointer;text-decoration:underline" onclick="showLoginScreen()">← Volver al login</span>
+      </div>
+    </div>
+  </div>`;
+}
+
+async function doLogin(){
+  const email=document.getElementById('login-email').value.trim();
+  const password=document.getElementById('login-password').value;
+  const btn=document.getElementById('login-btn');
+  const errDiv=document.getElementById('login-error');
+  if(!email||!password){showError(errDiv,'Completá email y contraseña');return;}
+  btn.textContent='Ingresando...';btn.disabled=true;
+  const{error}=await db.auth.signInWithPassword({email,password});
+  if(error){showError(errDiv,error.message==='Invalid login credentials'?'Email o contraseña incorrectos':error.message);btn.textContent='INGRESAR';btn.disabled=false;}
+}
+
+async function doRegister(){
+  const name=document.getElementById('reg-name').value.trim();
+  const email=document.getElementById('reg-email').value.trim();
+  const branch=document.getElementById('reg-branch').value;
+  const password=document.getElementById('reg-password').value;
+  const errDiv=document.getElementById('reg-error');
+  if(!name||!email||!password){showError(errDiv,'Completá todos los campos');return;}
+  if(password.length<6){showError(errDiv,'La contraseña debe tener al menos 6 caracteres');return;}
+  const{error}=await db.auth.signUp({email,password,options:{data:{full_name:name,branch}}});
+  if(error){showError(errDiv,error.message);}
+  else{
+    const loginDiv=document.getElementById('login-screen');
+    loginDiv.innerHTML=`<div style="min-height:100vh;width:100%;display:flex;align-items:center;justify-content:center;background:#1A1A1A">
+    <div style="background:#222;border:2px solid var(--jd-green);border-radius:6px;padding:36px 40px;width:100%;max-width:380px;text-align:center">
+      <div style="font-size:40px;margin-bottom:16px">✅</div>
+      <div style="font-size:16px;font-weight:900;color:#fff;margin-bottom:10px">Cuenta creada</div>
+      <div style="font-size:12px;color:#D0D0C8;margin-bottom:20px">Revisá tu email para confirmar la cuenta, luego podés ingresar.</div>
+      <button onclick="showLoginScreen()" style="padding:10px 24px;background:var(--jd-green);color:var(--jd-yellow);border:none;border-radius:3px;font-size:13px;font-weight:900;cursor:pointer">Ir al login</button>
+    </div></div>`;
+  }
+}
+
+function showError(el,msg){el.style.display='block';el.textContent=msg;}
+
+async function doLogout(){await db.auth.signOut();}
+
+async function initApp(){
+  const meta=currentUser?.user_metadata||{};
+  const savedName=localStorage.getItem('conci_name')||meta.full_name||'';
+  const savedBranch=localStorage.getItem('conci_branch')||meta.branch||'S1';
+  document.getElementById('user-name').value=savedName;
+  document.getElementById('user-branch').value=savedBranch;
+  const loginDiv=document.getElementById('login-screen');
+  if(loginDiv)loginDiv.style.display='none';
+  document.querySelector('.app').style.display='flex';
+  await loadAll();
+  setupRealtime();
+  render();
+}
+
+boot();
+
+</script>
+</body>
+</html>
